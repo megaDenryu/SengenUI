@@ -1,0 +1,44 @@
+{
+  "name": "@megadenryu/sengen-ui",
+  "version": "0.1.0",
+  "description": "SengenUI - A TypeScript UI component library",
+  "type": "module",
+  "main": "./dist/sengen-ui.umd.js",
+  "module": "./dist/sengen-ui.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/sengen-ui.es.js",
+      "require": "./dist/sengen-ui.umd.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && vite build",
+    "build:watch": "vite build --watch",
+    "dev": "vite",
+    "type-check": "tsc --noEmit",
+    "publish:clean": "rmdir /s /q dist 2>nul || true && npm run build && npm publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "typescript": "^5.7.3",
+    "vite": "^5.4.8"
+  },
+  "keywords": [
+    "ui",
+    "components",
+    "typescript",
+    "html",
+    "svg",
+    "mathml"
+  ],
+  "author": "megadenryu",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}
