@@ -1,3 +1,6 @@
+import { Px2DVector } from "../SengenBase/位置関係";
+
+
 /**
  * マウスの基本状態を表す型定義
  */
@@ -23,6 +26,7 @@ export interface IMouseEventData {
  */
 export class MouseEventData implements IMouseEventData {
     public readonly position: MousePosition;
+    public get pos2DVector(): Px2DVector {return Px2DVector.fromXYpair(this.position);}
     public readonly button: MouseButton;
     public readonly timestamp: number;
     public readonly originalEvent: MouseEvent;

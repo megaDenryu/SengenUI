@@ -36,6 +36,20 @@ export class ButtonC extends LV1HtmlComponentBase {
         return this;
     }
 
+    public getTextContent(): string {
+        return this.dom.element.textContent ?? "";
+    }
+
+    /**
+     * ボタンのテキストの先頭にテキストを追加
+     * 主に絵文字やアイコンの挿入に使用
+     */
+    public prependText(text: string): this {
+        const currentText = this.dom.element.textContent ?? "";
+        this.dom.element.textContent = text + currentText;
+        return this;
+    }
+
     public setHtmlContent(html: string): this {
         this.dom.element.innerHTML = html;
         return this;

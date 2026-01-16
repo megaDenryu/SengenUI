@@ -31,6 +31,10 @@ export class SpanC extends LV1HtmlComponentBase {
         return this;
     }
 
+    public getTextContent(): string {
+        return this.dom.element.textContent ?? "";
+    }
+
     public addClass(className: string | string[]): this {
         this.dom.addCSSClass(className);
         return this;

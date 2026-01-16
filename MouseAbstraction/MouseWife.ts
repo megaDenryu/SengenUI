@@ -1,4 +1,4 @@
-import { MouseStateManager } from ".";
+import { MouseStateManager } from "./MouseState";
 import { 二次マウス操作情報履歴 } from "./MouseState";
 import { ビューポート座標値 } from "../SengenBase/css長さ単位";
 import { LV1HtmlComponentBase } from "../SengenBase/LV1HtmlComponentBase";
@@ -66,8 +66,11 @@ export interface Iドラッグ可能 {
 export class MouseWife {
     ドラッグ状態: ドラッグ状態 = ドラッグ状態.ドラッグ終了;
     ドラッグ連動者リスト: Iドラッグに連動可能[] = [];
+    dragHandle: LV1HtmlComponentBase;
     constructor(dragHandle: LV1HtmlComponentBase) {
-        dragHandle.onMouseDown(this.onドラッグ開始.bind(this))
+        this.dragHandle = dragHandle;
+        dragHandle.setStyleCSS({ cursor: 'grab' })
+                .onMouseDown(this.onドラッグ開始.bind(this))
                 .onMouseMove(this.onドラッグ中.bind(this))
                 .onMouseUp(this.onドラッグ終了.bind(this));
         // contextmenuイベントは contextmenu は CommonEventType に含まれないため直接addEventListener
@@ -85,6 +88,7 @@ export class MouseWife {
         if (this.ドラッグ状態 !== ドラッグ状態.ドラッグ終了) {return;}
         this.ドラッグ状態 = ドラッグ状態.ドラッグ開始;
         const operationHistory = MouseStateManager.instance().マウスダウン時のマウス情報(e);
+        this.dragHandle.setStyleCSS({cursor: 'grabbing'});
         for (const 連動者 of this.ドラッグ連動者リスト) {
             イベント既定動作と伝搬を停止(e);
             連動者.onドラッグ開始(new Drag開始値(operationHistory));
@@ -103,6 +107,7 @@ export class MouseWife {
     }
 
     onドラッグ終了(e: MouseEvent): void {
+        this.dragHandle.setStyleCSS({cursor: 'grab'});
         if (this.ドラッグ状態 === ドラッグ状態.ドラッグ終了) { return; }
         
         const previousState = this.ドラッグ状態;
@@ -110,7 +115,6 @@ export class MouseWife {
         const operationHistory = MouseStateManager.instance().マウスアップ時のマウス情報(e);
         if (operationHistory == null) { return; }
         
-        if (previousState !== ドラッグ状態.ドラッグ中) {return;}
         for (const 連動者 of this.ドラッグ連動者リスト) {
             イベント既定動作と伝搬を停止(e);
             連動者.onドラッグ終了(new Drag終了値(operationHistory));
@@ -136,9 +140,12 @@ function イベント既定動作と伝搬を停止(event: MouseEvent): void {
 export class 位置管理 {
     private 位置管理対象: LV1HtmlComponentBase;
     private 現在位置: ビューポート座標値;
-    constructor(位置管理対象 : LV1HtmlComponentBase) {
+    private 追加transform: string | undefined;
+    
+    constructor(位置管理対象 : LV1HtmlComponentBase, 追加transform?: string) {
         this.位置管理対象 = 位置管理対象;
         this.現在位置 = 位置管理対象.getViewportPosition();
+        this.追加transform = 追加transform;
     }
 
     public 管理対象の移動を開始(): void {
@@ -151,11 +158,15 @@ export class 位置管理 {
             this.現在位置.y.value + e.data.直前のマウス位置から現在位置までの差分.y
         );
         this.現在位置 = next;
-        this.位置管理対象.setViewportPosition(next);
+        this.位置管理対象.setViewportPositionByTransform(next, { additionalTransform: this.追加transform });
     }
 
     public 位置を設定(pos: ビューポート座標値): void {
         this.現在位置 = pos;
-        this.位置管理対象.setViewportPosition(pos);
+        this.位置管理対象.setViewportPositionByTransform(pos, { additionalTransform: this.追加transform });
+    }
+    
+    public 追加transformを設定(transform: string): void {
+        this.追加transform = transform;
     }
 }

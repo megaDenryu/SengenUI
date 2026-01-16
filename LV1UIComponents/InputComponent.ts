@@ -259,6 +259,14 @@ export class InputC extends LV1HtmlComponentBase {
     }
 
     /**
+     * 入力フィールドのテキストを全選択する
+     */
+    public selectAll(): this {
+        (this.dom.element as HTMLInputElement).select();
+        return this;
+    }
+
+    /**
      * エンターキーヒントを設定する
      */
     public setEnterKeyHint(hint: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send'): this {

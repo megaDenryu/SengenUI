@@ -2,7 +2,7 @@ import { HtmlElementProxy } from "../SengenBase/DomProxy";
 import { LV1HtmlComponentBase } from "../SengenBase/LV1HtmlComponentBase";
 import { InputEventType, TypedEventListener } from "../SengenBase/EventTypes";
 
-export type NumberInputType = 'number' | 'range';
+import { NumberInputType } from "./InputComponent";
 
 export interface NumberInputOptions {
     type?: NumberInputType;
@@ -23,10 +23,10 @@ export interface NumberInputOptions {
 export class NumberInputC extends LV1HtmlComponentBase {
     constructor(options: NumberInputOptions = {}) {
         super();
-        
+
         const inputType = options.type || 'number';
         this.setType(inputType);
-        
+
         if (options.value !== undefined) {
             this.setValue(options.value);
         }
@@ -173,7 +173,7 @@ export class NumberInputC extends LV1HtmlComponentBase {
      * 型安全な数値入力用イベントリスナーを追加
      */
     public addNumberInputEventListener<T extends InputEventType>(
-        event: T, 
+        event: T,
         listener: TypedEventListener<T>
     ): this {
         this.addTypedEventListener(event, listener);

@@ -11,6 +11,7 @@ import { SvgElementBase } from "../SvgUIComponents/BaseClasses/SvgElementBase";
 import { SvgC } from "../SvgUIComponents/SvgC";
 import { MathC } from "../MathMLComponents/BaseClasses/MathC";
 import { ILV2MathMLComponent } from "../MathMLComponents/BaseClasses/ILV2MathMLComponent";
+import { Px2DVector } from "./位置関係";
 
 
 export interface HTMLComponentInterface extends HtmlAndSvgInterface {
@@ -270,6 +271,45 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
         });
         return this;
     }
+
+    /**
+     * transform: translate()を使用してビューポート基準で位置を設定します。
+     * - left/topを変更せず、transformのみで位置を変更するため、リフローを抑制できパフォーマンスが向上します。
+     * - 初回呼び出し時に `position: fixed` を設定します（`preservePositionProperty=true` で抑止可）。
+     * - 既存のtransformプロパティ（rotate, scaleなど）は上書きされるため、必要に応じて併記してください。
+     * - ビューポート左上を原点とした座標で指定します。
+     */
+    public setViewportPositionByTransform(
+        position: ビューポート座標値,
+        options: { preservePositionProperty?: boolean; additionalTransform?: string } = {}
+    ): this {
+        const computed = window.getComputedStyle(this.dom.element);
+        if (!options.preservePositionProperty && computed.position !== "fixed") {
+            this.setStyleCSS({ position: "fixed" });
+        } else if (computed.position === "static") {
+            this.setStyleCSS({ position: "fixed" });
+        }
+
+        const translateValue = `translate(${position.x.toCssValue()}, ${position.y.toCssValue()})`;
+        const transformValue = options.additionalTransform 
+            ? `${translateValue} ${options.additionalTransform}`
+            : translateValue;
+
+        this.setStyleCSS({
+            left: '0px',
+            top: '0px',
+            transform: transformValue
+        });
+        return this;
+    }
+
+    public setTranslate(pos :Px2DVector): this {
+        this.setStyleCSS({
+            transform: `translate(${pos.x.toCssValue()}, ${pos.y.toCssValue()})`
+        });
+        return this;
+    }
+        
 
     /**
      * 条件付きでビューポート基準の位置を設定

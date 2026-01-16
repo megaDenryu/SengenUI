@@ -77,6 +77,7 @@ export interface IHtmlComponentBase {
     
     // 位置設定
     setViewportPosition(position: ビューポート座標値, options?: { preservePositionProperty?: boolean }): this;
+    setViewportPositionByTransform(position: ビューポート座標値, options?: { preservePositionProperty?: boolean; additionalTransform?: string }): this;
     setDocumentPosition(position: ドキュメント座標値, options?: { preservePositionProperty?: boolean }): this;
     setOffsetPosition(position: オフセット座標値): this;
     

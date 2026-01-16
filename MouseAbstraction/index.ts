@@ -3,7 +3,7 @@
  * 
  * 使用例：
  * ```typescript
- * import { MouseGestureRecognizer, GestureType } from '@/Extend/MouseAbstraction';
+ * import { MouseGestureRecognizer, GestureType } from '@/TypeScriptBenriKakuchou/MouseAbstraction';
  * 
  * const recognizer = new MouseGestureRecognizer({
  *     onDrag: (result) => {
@@ -26,3 +26,6 @@ export type { MouseStateType, I二次マウス操作情報履歴 as IMouseOperat
 
 export { MouseGestureRecognizer, GestureType } from './MouseGesture';
 export type { GestureTypeType, IGestureResult, IGestureCallbacks } from './MouseGesture';
+
+export { ドラッグ状態, Drag中値, Drag開始値, Drag終了値, MouseWife, 位置管理 } from './MouseWife';
+export type { Iドラッグに連動可能, Iドラッグ可能 } from './MouseWife';

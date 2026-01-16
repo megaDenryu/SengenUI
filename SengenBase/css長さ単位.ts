@@ -58,8 +58,8 @@ export abstract class 座標系付き要素座標Base<系 extends string, Self e
         return this.px2DVector.equals(other.px2DVector);
     }
 
-
-    public plus(other: Self): Self {return this.newFromPx2DVector(this.px2DVector.plus(other.px2DVector));}
+    
+    public plus(other: Self|Px2DVector): Self {return this.newFromPx2DVector(this.px2DVector.plus(other.px2DVector));}
     public minus(other: Self): Self {return this.newFromPx2DVector(this.px2DVector.minus(other.px2DVector));}
     public times(k: number): Self {return this.newFromPx2DVector(this.px2DVector.times(k));}
     public divide(k: number): Self {return this.newFromPx2DVector(this.px2DVector.divide(k));}

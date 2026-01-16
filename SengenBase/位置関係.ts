@@ -83,6 +83,7 @@ export abstract class Canvas座標Base<Self extends Canvas座標Base<Self>> impl
     public abstract newFromPx2DVector(px2DVector: Px2DVector): Self;
     public abstract plus(v: Px2DVector):Self
     public abstract minus(v: Px2DVector):Self
+    public abstract minus(v: Self):Px2DVector
     public abstract times(k: number):Self
     public abstract divide(k: number):Self
     public abstract dot(v: Px2DVector):number
@@ -146,9 +147,23 @@ export class 画面座標点 extends Canvas座標Base<画面座標点> {
     public divide(k: number) {return divideVectorN(this as 画面座標点, k); }
     public dot(v: Px2DVector) {return dotVectorN(this, v); }
 
+    // public to描画座標点(描画基準座標: 描画基準座標): 描画座標点 {
+    //     const 相対vec = this.px2DVector.minus(描画基準座標.描画原点.px2DVector)
+    //     return new 描画座標点(相対vec, 描画基準座標);
+    // }
+
     public to描画座標点(描画基準座標: 描画基準座標): 描画座標点 {
-        const 相対vec = this.px2DVector.minus(描画基準座標.描画原点.px2DVector)
-        return new 描画座標点(相対vec, 描画基準座標);
+        /**
+         * 描画基準座標系でクリックした点が拡縮後座標系でどこにあるか、その点を求める。
+         * 拡縮後座標系の中心o'とする。
+         * 拡縮中心をsとする
+         */
+        const alpha = 描画基準座標.拡縮率;
+        const c = this.px2DVector
+        const s = 描画基準座標.拡縮中心点.px2DVector;
+        const o_dash = s.times(1-alpha);
+        const d = c.minus(o_dash).divide(alpha);
+        return 描画座標点.fromPx2DVector(d,描画基準座標).minus(描画基準座標.描画原点.px2DVector);
     }
 
     public to図形内座標点(図形内基準座標: 図形内基準座標):図形内座標点 {
@@ -162,6 +177,7 @@ export class 画面座標点 extends Canvas座標Base<画面座標点> {
 export class 描画基準座標 {
     public 描画原点: 画面座標点;
     public 拡縮率: number = 1.0;
+    public 拡縮中心点: 画面座標点 = new 画面座標点(new Px2DVector(new Px長さ(0), new Px長さ(0)));
 
     constructor(描画原点: 画面座標点) {
         this.描画原点 = 描画原点;
@@ -219,13 +235,45 @@ export class 描画座標点 extends Canvas座標Base<描画座標点> {
     }
 
     public plus(v: Px2DVector): 描画座標点 { return new 描画座標点(this.px2DVector.plus(v), this.描画基準座標); }
-    public minus(v: Px2DVector): 描画座標点 { return new 描画座標点(this.px2DVector.minus(v), this.描画基準座標); }
+    // minusのオーバーロード
+    public minus(v: 描画座標点): Px2DVector;
+    public minus(v: Px2DVector): 描画座標点;
+    public minus(v: Px2DVector | 描画座標点): Px2DVector | 描画座標点 {
+        if (v instanceof 描画座標点) {
+            return this.px2DVector.minus(v.px2DVector);
+        } else {
+            return new 描画座標点(this.px2DVector.minus(v), this.描画基準座標);
+        }
+    }
     public times(k: number): 描画座標点 {return timesVectorN(this as 描画座標点, k); }
     public divide(k: number): 描画座標点 {return divideVectorN(this as 描画座標点, k); }
     public dot(v: Px2DVector): number {return dotVectorN(this, v); }
 
     public to画面座標点(): 画面座標点 {
         return 画面座標点.fromPx2DVector(this.px2DVector.plus(this.描画基準座標.描画原点.px2DVector))
+    }
+
+    public to画面座標点スケール考慮(): 画面座標点 {
+        /**
+         * 描画座標点から画面座標点への変換（拡縮率と拡縮中心を考慮）
+         * to描画座標点の逆変換
+         * 
+         * 描画座標点dから画面座標点cへの変換式:
+         * c = (d + o) - s) * α + s
+         * ただし、
+         * - d: 描画座標点（描画原点からの相対位置）
+         * - o: 描画原点（画面座標系での位置）
+         * - s: 拡縮中心点
+         * - α: 拡縮率
+         */
+        const alpha = this.描画基準座標.拡縮率;
+        const d = this.px2DVector;  // 描画座標点（描画原点からの相対）
+        const o = this.描画基準座標.描画原点.px2DVector;  // 描画原点
+        const s = this.描画基準座標.拡縮中心点.px2DVector;  // 拡縮中心
+        
+        // 描画原点を加算して画面座標系に変換し、拡縮中心を基準に拡縮適用
+        const c = d.plus(o).minus(s).times(alpha).plus(s);
+        return 画面座標点.fromPx2DVector(c);
     }
 
     public to図形内座標点(図形内座標: 図形内基準座標): 図形内座標点 {
@@ -287,7 +335,16 @@ export class 図形内座標点 extends Canvas座標Base<図形内座標点> {
     }
 
     public plus(v: Px2DVector): 図形内座標点 { return new 図形内座標点(this.px2DVector.plus(v), this.図形内基準座標); }
-    public minus(v: Px2DVector): 図形内座標点 { return new 図形内座標点(this.px2DVector.minus(v), this.図形内基準座標); }
+    // minusのオーバーロード
+    public minus(v: 図形内座標点): Px2DVector;
+    public minus(v: Px2DVector): 図形内座標点;
+    public minus(v: Px2DVector | 図形内座標点): Px2DVector | 図形内座標点 {
+        if (v instanceof 図形内座標点) {
+            return this.px2DVector.minus(v.px2DVector);
+        } else {
+            return new 図形内座標点(this.px2DVector.minus(v), this.図形内基準座標);
+        }
+    }
     public times(k: number): 図形内座標点 {return timesVectorN(this as 図形内座標点, k); }
     public divide(k: number): 図形内座標点 {return divideVectorN(this as 図形内座標点, k); }
     public dot(v: Px2DVector): number {return dotVectorN(this, v); }

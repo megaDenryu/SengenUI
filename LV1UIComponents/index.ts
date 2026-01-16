@@ -1,5 +1,7 @@
 // LV1 UI Components - HTML element wrappers
 export * from './AComponent(アンカー)';
+export * from './NumberInputComponent';
+
 export * from './AudioComponent';
 export * from './BrComponent';
 export * from './ButtonComponent';

@@ -1,4 +1,6 @@
 // MathML Components
+export * from './BaseClasses';
+
 export * from './MencloseC';
 export * from './MfencedC';
 export * from './MfracC';

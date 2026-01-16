@@ -10,6 +10,7 @@ export * from './SengenBase/EventTypes';
 // Utilities
 export * from './SengenBase/css長さ単位';
 export * from './SengenBase/位置関係';
+export * from './SengenBase/数と全単射な物';
 export * from './SengenBase/vector';
 
 // Component bases
