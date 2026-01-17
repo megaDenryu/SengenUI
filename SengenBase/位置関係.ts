@@ -383,7 +383,7 @@ export class 図形内座標点 extends Canvas座標Base<図形内座標点> {
 
 export interface 描画点を持つ者 {
     描画点: 描画座標点;
-    描画位置を更新(画面座標点:画面座標点);
+    描画位置を更新(画面座標点:画面座標点): void;
 }
 
 export interface I描画空間 {
