@@ -1,4 +1,4 @@
-# UIComponentの使い方
+# SengenUIの使い方
 1. UIComponentBase: すべてのUIコンポーネントの抽象基底クラス。そしてUIコンポーネントはすべて次のLV1とLV2のどちらかになる。つまり
 2. LV1UIComponentBase:HTMLエレメントに対応するコンポーネント、div要素ならDivC、span要素ならSpanCなどの、[エレメント名 + C]という名前のクラス名にする。CはComponentの頭文字。
 3. Lv2UIComponentBase:複数のLV1UIComponentBaseとLv2UIComponentBaseをコンポジットすることで作られるコンポーネント。
