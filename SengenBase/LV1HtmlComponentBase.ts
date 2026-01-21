@@ -10,7 +10,7 @@ import { ILV1HtmlComponentBase } from "./HtmlComponentBaseInterfaces";
  */
 export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements ILV1HtmlComponentBase {
     protected _dom: HtmlElementProxy;
-    public get dom(): HtmlElementProxy {return this._dom;}//フレームワークを実装するために仕方なくpublicになってるだけなので基底クラス以外がdomを直接参照することは禁止。重大な犯罪行為。重大なバグの元。使うやつは頭が悪い。
+    public get dom(): HtmlElementProxy { return this._dom; }//フレームワークを実装するために仕方なくpublicになってるだけなので基底クラス以外がdomを直接参照することは禁止。重大な犯罪行為。重大なバグの元。使うやつは頭が悪い。
     constructor() {
         super();
         this._dom = this.createDomProxy(); // サブクラスで実装されるcreateDomProxyを呼び出す
@@ -20,6 +20,20 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
      * サブクラスでDomProxyインスタンスを生成して返すための抽象メソッド。
      */
     protected abstract createDomProxy(): HtmlElementProxy;
+
+    public setAttribute(key: string, value: string): this {
+        this.dom.element.setAttribute(key, value);
+        return this;
+    }
+
+    public toggleAttribute(key: string, isSet: boolean, valueIfTrue: string = "true"): this {
+        if (isSet) {
+            this.dom.element.setAttribute(key, valueIfTrue);
+        } else {
+            this.dom.element.removeAttribute(key);
+        }
+        return this;
+    }
 
     /**
      * LV1コンポーネントは通常、子コンポーネントを論理的に持たず、
@@ -35,7 +49,7 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
      * @param listener イベントハンドラー
      */
     public addTypedEventListener<T extends CommonEventType>(
-        event: T, 
+        event: T,
         listener: TypedEventListener<T>
     ): this {
         this.dom.element.addEventListener(event, listener as EventListener);
@@ -48,7 +62,7 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
      * @param listener イベントハンドラー
      */
     public removeTypedEventListener<T extends CommonEventType>(
-        event: T, 
+        event: T,
         listener: TypedEventListener<T>
     ): this {
         this.dom.element.removeEventListener(event, listener as EventListener);
@@ -103,7 +117,7 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
     public onKeyUp(callback: TypedEventListener<'keyup'>): this {
         this.addTypedEventListener('keyup', callback);
         return this;
-    }    
+    }
 
     public onKeyPress(callback: TypedEventListener<'keypress'>): this {
         this.addTypedEventListener('keypress', callback);
