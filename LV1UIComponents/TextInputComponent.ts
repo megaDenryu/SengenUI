@@ -2,7 +2,7 @@ import { HtmlElementProxy } from "../SengenBase/DomProxy";
 import { LV1HtmlComponentBase } from "../SengenBase/LV1HtmlComponentBase";
 import { InputEventType, TypedEventListener } from "../SengenBase/EventTypes";
 
-export type TextInputType = 'text' | 'password' | 'email' | 'url' | 'tel' | 'search';
+import { TextInputType } from "./InputComponent";
 
 export interface TextInputOptions {
     type?: TextInputType;
@@ -23,7 +23,7 @@ export interface TextInputOptions {
 export class TextInputC extends LV1HtmlComponentBase {
     constructor(options: TextInputOptions = {}) {
         super();
-        
+
         if (options.type) {
             this.setType(options.type);
         }
@@ -108,6 +108,11 @@ export class TextInputC extends LV1HtmlComponentBase {
         return this;
     }
 
+    public setReadOnly(readOnly: boolean): this {
+        (this.dom.element as HTMLInputElement).readOnly = readOnly;
+        return this;
+    }
+
     public addClass(className: string | string[]): this {
         this.dom.addCSSClass(className);
         return this;
@@ -165,7 +170,7 @@ export class TextInputC extends LV1HtmlComponentBase {
      * 型安全なテキスト入力用イベントリスナーを追加
      */
     public addTextInputEventListener<T extends InputEventType>(
-        event: T, 
+        event: T,
         listener: TypedEventListener<T>
     ): this {
         this.addTypedEventListener(event, listener);

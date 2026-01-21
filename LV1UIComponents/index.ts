@@ -31,6 +31,7 @@ export * from './TableC';
 export * from './TBodyC';
 export * from './TdC';
 export * from './TextAreaComponent(複数行入力)';
+export * from './TextInputComponent';
 export * from './TFootComponent';
 export * from './ThComponent';
 export * from './THeadComponent';
