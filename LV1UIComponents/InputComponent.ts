@@ -187,6 +187,11 @@ export class InputC extends LV1HtmlComponentBase {
         return this;
     }
 
+    public setMaxLength(length: number): this {
+        (this.dom.element as HTMLInputElement).maxLength = length;
+        return this;
+    }
+
     public setInputMode(mode: HTMLInputElement['inputMode']): this {
         (this.dom.element as HTMLInputElement).inputMode = mode;
         return this;
