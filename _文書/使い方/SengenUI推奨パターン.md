@@ -164,12 +164,18 @@ LV2UIComponentでのフィールドバインディング：
 
 ```typescript
 // ✅ bind()でコンポーネント参照を取得しながら構造を構築
-export class CustomFormComponent extends LV2UIComponentBase {
+export class CustomFormComponent extends LV2HtmlComponentBase {
+    protected _componentRoot: DivC;
     private submitButton: ButtonC;
     private statusDisplay: SpanC;
+
+    constructor() {
+        super();
+        this._componentRoot = this.createComponentRoot();
+    }
     
-    protected createDomProxy(): DomProxy {
-        const rootDiv = new DivC(undefined, ["custom-form"])
+    protected createComponentRoot(): DivC {
+        return new DivC(undefined, ["custom-form"])
             .childs([
                 new DivC(undefined, ["form-controls"]).childs([
                     new ButtonC({ text: "送信" })
@@ -179,7 +185,6 @@ export class CustomFormComponent extends LV2UIComponentBase {
                         .bind((span) => { this.statusDisplay = span; })
                 ])
             ]);
-        return rootDiv.dom;
     }
     
     private handleSubmit(): void {
@@ -213,8 +218,43 @@ button.removeTypedEventListener("click", clickHandler);
 これらのパターンにより、型安全で保守性が高く、読みやすいUIコンポーネントコードを作成できます。
 
 # UIComponentBaseの作り方
-this._domを作るためにcreateDomProxy()の内部でDomProxyの作成手順を定義する。この定義方法について解説する。
-LV1とLV2どちらも明示的にthis._dom = this.createDomProxy()を明示的に手動で呼ぶこと。this._domはreadonlyだが、domの構成自体にクラスのLV1またはLV2のフィールド情報を使いたいことが頻発するのでUIComponentBaseのコンストラクターの中には含んでいない。（含むとthis.createDomProxy()がsuper()のなかで呼ばれるとthis.fieldが使えないため）
+UIコンポーネントは大きく分けて、HTML要素を直接ラップする **LV1コンポーネント** と、それらを組み合わせて作る **LV2コンポーネント** があります。
+
+## LV1UIComponentの作成
+DivC, ButtonC など、HTMLタグに1対1で対応するコンポーネントです。`createDomProxy` を実装して、対応する `HtmlElementProxy` を返します。
+
+## LV2UIComponentの作成
+`LV2HtmlComponentBase` を継承して作ります。
+**重要:** `createDomProxy` ではなく、**`createComponentRoot`** を実装します。
+
+```typescript
+export class MyComponent extends LV2HtmlComponentBase {
+    // コンポーネントのルート要素（LV1または他のLV2）
+    protected _componentRoot: DivC; 
+    
+    // 内部で使用する子コンポーネントへの参照
+    private _myButton: ButtonC;
+
+    constructor() {
+        super();
+        // createComponentRootを呼んでルート要素を生成・保持する
+        this._componentRoot = this.createComponentRoot();
+    }
+
+    protected createComponentRoot(): DivC {
+        // メソッドチェーンで構造を宣言的に定義する
+        return new DivC({ class: "container-class" })
+            .child(
+                new ButtonC({ text: "Click Me" })
+                    .bind(btn => this._myButton = btn) // 参照を保持
+                    .onClick(() => console.log("Clicked!"))
+            );
+    }
+}
+```
+
+`_componentRoot` に設定されたコンポーネントの `dom` が、このLV2コンポーネント自身の `dom` として振る舞います。
+
 # LV1UIComponentの作成状況
 form、table、tbody、tr、td、canvasなどはまだ
 
@@ -243,29 +283,24 @@ const graphContainer = new DivC({ class: "graph-container" })
         svg.appendChild(nodeGraph.svgDom.svgElement);
     });
 ```
-# Lv2UIComponentBase のthis.createDomProxy()の作り方
-```typescript
-protected createDomProxy(): DomProxy {
-        const rootDiv = (new DivC(undefined, ["toggle-format-state-display", this._color.get()])).bind((diplay)=>{}).childs(
-                            [
-                                (new Button()).bind((span) => {this.stateTextElement = span;}).child(
-                                    (new DivC(undefined, ["toggle-format-state-display1", this._color.get()])).bind((diplay)=>{this.display1 = display}).child(
-                                        (new SpanC(this._state.get(), "state")).bind((span) => {this.stateTextElement = span;})
-                                    )
-                                ),
-                                (new Input()).bind((span) => {this.stateTextElement = span;}).child(
-                                    (new DivC(undefined, ["toggle-format-state-display2", this._color.get()])).bind((diplay)=>{this.display2 = display}).child(
-                                        (new SpanC(this._state.get(), "state")).bind((span) => {this.stateTextElement = span;})
-                                    )
-                                )
-                            ]
-                        );
-        return rootDiv.dom;
-    }
-```
-のように、UIComponentBaseに実装されているchild()やchilds()をメソッドチェーンでつなげてHTMLと同じ構造でコンポーネントで階層化していくことができる。これによってコンポーネントのdom構造が一目でわかるようになっている。
-また、bind()を使ってLV2UIComponentのフィールドにビルドメソッドチェーンの中で作ったコンポーネントインスタンスを割り当てることができます。これによってコンポーネント・Domを作成しながら、それをコンポーネントクラスのフィールドにバインドしたり、イベントリスナーをつけたりするのを一体で行うことができ、可読性が良くなります。
-イベントリスナーを設定したりする関数は、それぞれのコンポーネントクラスごとに違うのでそれに従ってください。
+# Lv2UIComponentBase の 実装パターンまとめ
+1. **`LV2HtmlComponentBase` を継承する**
+2. **`_componentRoot` フィールドを定義する**
+3. **`createComponentRoot` メソッドを実装し、コンポーネントツリーを構築してルートを返す**
+4. **コンストラクタで `this._componentRoot = this.createComponentRoot();` を実行する**
+5. **`createDomProxy` は実装しない（基底クラスで処理されるため）**
+6. **作成したLV2コンポーネントクラスをさらに継承することを禁止する（Sealed）**
+
+# LV2コンポーネントの継承禁止（Sealed原則）
+`LV2HtmlComponentBase` を直接継承した具象コンポーネントクラス（例: `MyComponent`）を、**さらに継承して別のクラスを作ることは禁止**です。C#における `sealed` クラスとして扱ってください。
+
+### 理由: 初期化タイミングの不整合
+LV2コンポーネントはコンストラクタ内で `createComponentRoot()` を呼び出して初期化を完了させる設計になっています。
+もしこれを継承した場合、親クラスのコンストラクタ内で（オーバーライドされた）子クラスの `createComponentRoot()` が実行される可能性があります。この時点で子クラスのフィールドはまだ初期化されていないため、**ぬるぽ（実行時エラー）や予期せぬ挙動**の温床となります。
+
+### 代替案
+既存のコンポーネントを拡張したい場合は、継承ではなく**コンポジション（包含）**を使用してください。
+新しいコンポーネントの中で、既存のコンポーネントを子要素として利用し、必要な機能をラップして提供するのが正しい設計です。
 
 
 # **vanila extractを使用したcssを推奨**
