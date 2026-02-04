@@ -113,6 +113,11 @@ export class SelectC extends LV1HtmlComponentBase {
         return this;
     }
 
+    public setValue(value: string): this {
+        (this.dom.element as HTMLSelectElement).value = value;
+        return this;
+    }
+
     /**
      * 型安全なSelect用イベントリスナーを追加します
      * @param event イベントタイプ

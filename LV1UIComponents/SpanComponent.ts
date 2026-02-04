@@ -26,7 +26,9 @@ export class SpanC extends LV1HtmlComponentBase {
     protected createDomProxy(): HtmlElementProxy {
         const span = document.createElement('span');
         return new HtmlElementProxy(span);
-    }    public setTextContent(text: string): this {
+    }    
+    
+    public setTextContent(text: string): this {
         this.dom.element.textContent = text;
         return this;
     }
