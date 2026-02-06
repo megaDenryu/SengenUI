@@ -65,52 +65,84 @@ export const container = style({
 
 Vanilla Extractは `.css.ts` 内でTypeScriptの変数を扱えるため、JSの変数をキーとして使用できます。
 
-### Step 1: 状態の定数定義
-
-```typescript
-// ComponentStates.ts
-export const BoxState = {
-    Idle: "idle",
-    Selected: "selected",
-    Error: "error"
-} as const;
-
-export const BoxAttr = {
-    State: "data-state"
-} as const;
-```
-
-### Step 2: Componentでの利用 (Write)
-
-```typescript
-// Component.ts
-import { BoxState, BoxAttr } from "./ComponentStates";
-
-// ...
-this.div.setAttribute(BoxAttr.State, BoxState.Selected);
-```
-
-### Step 3: CSSでの利用 (Read)
+### 書き方と使い方
 
 Vanilla Extractでは、Computed Property names（`[]`で囲ったキー）が使えます。
+**data-attribute用のスタイルはglobalStyleで定義する。Selectorでdata-attributeを定義する機能はVEでは提供されていないの実行時にエラーになる。しかもコンパイルではエラーを検出できないので注意**
 
+#### 状態宣言
+状態は以下のようにkey-value Objectの完全定数として定義すると散らばらなくてよい。
 ```typescript
-// style.css.ts
-import { style } from '@vanilla-extract/css';
-import { BoxState, BoxAttr } from "./ComponentStates";
-
-export const box = style({
-  selectors: {
-    // 定数を使ってセレクタを生成
-    [`&[${BoxAttr.State}="${BoxState.Selected}"]`]: {
-      borderColor: 'blue'
-    },
-    [`&[${BoxAttr.State}="${BoxState.Error}"]`]: {
-      borderColor: 'red'
+// 状態.ts
+export const カスタムセレクトボタン基本css_state = {
+    attribute : "data-selected",
+    value : {
+        selected : "true",
+        notSelected : "false"
     }
-  }
+} as const;
+```
+#### css定義
+状態.tsの定数オブジェクトを参照して
+```ts
+// style.css.ts
+export const カスタムセレクトボタン基本css = style({
+    display: 'block',
+    width: '100%',
+    padding: '12px 16px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#2c3e50',
+    backgroundColor: '#f8f9fa',
+    border: '2px solid #e9ecef',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    textAlign: 'center',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    marginBottom: '4px',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    userSelect: 'none',
+    
+    // ホバー状態
+    ':hover': {
+        backgroundColor: '#e3f2fd',
+        borderColor: '#64b5f6',
+        transform: 'translateY(-1px)',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)'
+    },
+
+    ':focus': {
+        outline: 'none',
+        boxShadow: '0 0 0 3px rgba(52, 144, 220, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1)'
+    },
+});
+// data-attribute用のスタイル（globalStyleで定義しないといけない。Selectorで定義する機能はVEでは提供されていないのでエラーになる。）
+globalStyle(`${カスタムセレクトボタン基本css}[${カスタムセレクトボタン基本css_state.attribute}="${カスタムセレクトボタン基本css_state.value.selected}"]`, {
+    backgroundColor: '#e8f5e8',
+    borderColor: '#28a745',
+    color: '#155724',
+    fontWeight: '600',
+    boxShadow: '0 2px 8px rgba(40, 167, 69, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+});
+
+globalStyle(`${カスタムセレクトボタン基本css}[${カスタムセレクトボタン基本css_state.attribute}="${カスタムセレクトボタン基本css_state.value.selected}"]:hover`, {
+    backgroundColor: '#d4edda',
+    borderColor: '#1e7e34',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 4px 12px rgba(40, 167, 69, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
 });
 ```
+
+#### コンポーネントでの状態変更
+```ts
+private 選択状態を更新(選択中: boolean): void {
+        this._componentRoot.setAttribute(
+            カスタムセレクトボタン基本css_state.attribute,
+            選択中 ? カスタムセレクトボタン基本css_state.value.selected : カスタムセレクトボタン基本css_state.value.notSelected
+        );
+    }
+```
+
 
 ### メリット
 
