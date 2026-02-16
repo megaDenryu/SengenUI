@@ -446,6 +446,18 @@ export class HtmlElementProxy extends ElementProxy<HTMLElement> {
         };
     }
 
+    public get親要素の画面内での座標(): 要素座標 {
+        const parentElement = this._element.parentElement;
+        if (!parentElement) {
+            return { x: new Px長さ(0), y: new Px長さ(0) };
+        }
+        const rect = parentElement.getBoundingClientRect();
+        return {
+            x: new Px長さ(rect.left),
+            y: new Px長さ(rect.top)
+        };
+    }
+
     public get自身のコンテキスト():コンテキスト {
         return {
             width: new Px長さ(this._element.clientWidth),
