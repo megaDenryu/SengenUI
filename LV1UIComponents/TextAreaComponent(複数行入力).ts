@@ -11,11 +11,12 @@ interface TextAreaOptions {
     id?: string;
     disabled?: boolean;
     readonly?: boolean;
+    spellcheck?: boolean;
 }
 
 export class TextAreaC extends LV1HtmlComponentBase {
     constructor(options?: TextAreaOptions) {
-        super(); 
+        super();
 
         if (options?.value) {
             this.setValue(options.value);
@@ -40,6 +41,9 @@ export class TextAreaC extends LV1HtmlComponentBase {
         }
         if (options?.readonly) {
             this.setReadonly(options.readonly);
+        }
+        if (options?.spellcheck !== undefined) {
+            this.setSpellcheck(options.spellcheck);
         }
     }
 
@@ -97,6 +101,11 @@ export class TextAreaC extends LV1HtmlComponentBase {
         return this;
     }
 
+    public setSpellcheck(spellcheck: boolean): this {
+        (this.dom.element as HTMLTextAreaElement).spellcheck = spellcheck;
+        return this;
+    }
+
     // === TextArea固有のイベントメソッド ===
 
     /**
@@ -105,7 +114,7 @@ export class TextAreaC extends LV1HtmlComponentBase {
      * @param listener イベントハンドラー
      */
     public addTextAreaEventListener<T extends TextAreaEventType>(
-        event: T, 
+        event: T,
         listener: TypedEventListener<T>
     ): this {
         this.addTypedEventListener(event, listener);
