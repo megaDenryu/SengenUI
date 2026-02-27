@@ -26,6 +26,11 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
         return this;
     }
 
+    public setTabIndex(index: number): this {
+        this.dom.element.tabIndex = index;
+        return this;
+    }
+
     public toggleAttribute(key: string, isSet: boolean, valueIfTrue: string = "true"): this {
         if (isSet) {
             this.dom.element.setAttribute(key, valueIfTrue);
@@ -42,6 +47,16 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
      * LV1の設計思想としては、内部構造は自身の責務で完結させるか、
      * setTextContentやsetHtmlContentのようなメソッドで操作することが推奨されます。
      */
+
+    public focus(options?: FocusOptions): this {
+        this.dom.element.focus(options);
+        return this;
+    }
+
+    public blur(): this {
+        this.dom.element.blur();
+        return this;
+    }
 
     /**
      * 型安全なイベントリスナーを追加します
