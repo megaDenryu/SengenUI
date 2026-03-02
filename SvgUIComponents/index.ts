@@ -67,3 +67,4 @@ export * from './TitleC';
 export * from './TSpanC';
 export * from './UseC';
 export * from './VKernC';
+export * from './SvgCreationFunctions';
