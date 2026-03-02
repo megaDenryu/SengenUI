@@ -186,7 +186,7 @@ export abstract class ElementProxy<T extends Element> {
      */
     addCSSClass(classNames: string[] | string): void {
         const classes = Array.isArray(classNames) 
-            ? classNames.filter(Boolean) 
+            ? classNames.filter(Boolean) // 空文字が含まれているとDOMTokenList.addでエラーになるため、除外する
             : classNames.split(' ').filter(Boolean);
         
         if (classes.length > 0) {
@@ -199,7 +199,7 @@ export abstract class ElementProxy<T extends Element> {
      */
     removeCSSClass(classNames: string[] | string): void {
         const classes = Array.isArray(classNames)
-            ? classNames.filter(Boolean)
+            ? classNames.filter(Boolean) // 空文字が含まれているとDOMTokenList.removeでエラーになるため、除外する
             : classNames.split(' ').filter(Boolean);
         
         if (classes.length > 0) {
