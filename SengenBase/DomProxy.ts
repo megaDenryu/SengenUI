@@ -186,10 +186,12 @@ export abstract class ElementProxy<T extends Element> {
      */
     addCSSClass(classNames: string[] | string): void {
         const classes = Array.isArray(classNames) 
-            ? classNames 
+            ? classNames.filter(Boolean) 
             : classNames.split(' ').filter(Boolean);
         
-        this._element.classList.add(...classes);
+        if (classes.length > 0) {
+            this._element.classList.add(...classes);
+        }
     }
 
     /**
@@ -197,10 +199,12 @@ export abstract class ElementProxy<T extends Element> {
      */
     removeCSSClass(classNames: string[] | string): void {
         const classes = Array.isArray(classNames)
-            ? classNames
+            ? classNames.filter(Boolean)
             : classNames.split(' ').filter(Boolean);
         
-        this._element.classList.remove(...classes);
+        if (classes.length > 0) {
+            this._element.classList.remove(...classes);
+        }
     }
 
     setCSSClass(classNames: string[] | string): void {
