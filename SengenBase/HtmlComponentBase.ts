@@ -466,6 +466,14 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
         }
     }
 
+    /**
+     * 要素の最下部までスクロールする
+     */
+    public scrollToBottom(): this {
+        this.dom.scrollToBottom();
+        return this;
+    }
+
     public get style(): CSSStyleDeclaration {
         return this.dom.element.style;
     }    

@@ -24,7 +24,7 @@ export abstract class LV2HtmlComponentBase extends HtmlComponentBase implements 
         // this.buildComponentStructure();
     }
 
-    protected abstract createComponentRoot(...args: any[]): HtmlComponentBase 
+    // protected abstract createComponentRoot(...args: any[]): HtmlComponentBase 
 
     /**
      * LV2コンポーネントの内部構造を構築します。

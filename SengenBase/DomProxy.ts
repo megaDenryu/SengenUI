@@ -465,6 +465,13 @@ export class HtmlElementProxy extends ElementProxy<HTMLElement> {
         };
     }
 
+    /**
+     * 要素の最下部までスクロールする
+     */
+    public scrollToBottom(): void {
+        this._element.scrollTop = this._element.scrollHeight;
+    }
+
     // 既存コードとの互換性のため、elementプロパティを提供
     get element(): HTMLElement {
         return this._element;
