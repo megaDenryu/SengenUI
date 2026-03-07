@@ -53,3 +53,4 @@ export const th = (options?: OptionsOf<typeof LV1.ThC>) => new LV1.ThC(options);
 export const canvas = (options?: OptionsOf<typeof LV1.CanvasC>) => new LV1.CanvasC(options);
 export const iframe = (options?: OptionsOf<typeof LV1.IframeC>) => new LV1.IframeC(options);
 export const audio = (options?: OptionsOf<typeof LV1.AudioC>) => new LV1.AudioC(options);
+export const video = (options?: OptionsOf<typeof LV1.VideoC>) => new LV1.VideoC(options);

@@ -37,4 +37,5 @@ export * from './ThComponent';
 export * from './THeadComponent';
 export * from './TrC';
 export * from './UlComponent';
+export * from './VideoComponent';
 export * from './LV1CreationFunctions';
