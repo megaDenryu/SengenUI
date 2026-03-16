@@ -41,6 +41,19 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
     }
 
     /**
+     * 条件付きで属性を設定
+     * Why: data-attribute状態管理パターンで、状態に応じて属性値を切り替えるため
+     */
+    public setAttributeIf(ifAttr: { If: boolean, True: { attr: string, value: string }, False?: { attr: string, value: string } }): this {
+        if (ifAttr.If) {
+            return this.setAttribute(ifAttr.True.attr, ifAttr.True.value);
+        } else if (ifAttr.False !== undefined) {
+            return this.setAttribute(ifAttr.False.attr, ifAttr.False.value);
+        }
+        return this;
+    }
+
+    /**
      * LV1コンポーネントは通常、子コンポーネントを論理的に持たず、
      * そのDOM構造内に直接HTML要素やテキストを持つことを想定しています。
      * appendChild を呼び出すと UIComponentBase の実装が使われますが、
