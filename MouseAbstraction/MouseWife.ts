@@ -90,6 +90,8 @@ export class MouseWife {
 
     onドラッグ開始(e: PointerEvent): void {
         if (this.ドラッグ状態 !== ドラッグ状態.ドラッグ終了) {return;}
+        // Why: setPointerCaptureでタッチデバイスでも要素外へ指が動いた場合にpointermoveを受け取れるようにする
+        this.dragHandle.dom.element.setPointerCapture(e.pointerId);
         this.ドラッグ状態 = ドラッグ状態.ドラッグ開始;
         const operationHistory = MouseStateManager.instance().マウスダウン時のマウス情報(e);
         this.dragHandle.setStyleCSS({cursor: 'grabbing'});
@@ -111,6 +113,9 @@ export class MouseWife {
     }
 
     onドラッグ終了(e: PointerEvent): void {
+        if (this.dragHandle.dom.element.hasPointerCapture(e.pointerId)) {
+            this.dragHandle.dom.element.releasePointerCapture(e.pointerId);
+        }
         this.dragHandle.setStyleCSS({cursor: 'grab'});
         if (this.ドラッグ状態 === ドラッグ状態.ドラッグ終了) { return; }
 
