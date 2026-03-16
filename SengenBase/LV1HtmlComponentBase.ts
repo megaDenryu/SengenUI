@@ -127,6 +127,21 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
         return this;
     }
 
+    public onPointerDown(callback: TypedEventListener<'pointerdown'>): this {
+        this.addTypedEventListener('pointerdown', callback);
+        return this;
+    }
+
+    public onPointerMove(callback: TypedEventListener<'pointermove'>): this {
+        this.addTypedEventListener('pointermove', callback);
+        return this;
+    }
+
+    public onPointerUp(callback: TypedEventListener<'pointerup'>): this {
+        this.addTypedEventListener('pointerup', callback);
+        return this;
+    }
+
     public onFocus(callback: TypedEventListener<'focus'>): this {
         this.addTypedEventListener('focus', callback);
         return this;

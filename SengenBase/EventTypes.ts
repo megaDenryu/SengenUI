@@ -27,6 +27,14 @@ export type CommonEventType =
     | 'reset'
     | 'load'
     | 'error'
+    | 'pointerdown'
+    | 'pointermove'
+    | 'pointerup'
+    | 'pointercancel'
+    | 'pointerenter'
+    | 'pointerleave'
+    | 'pointerover'
+    | 'pointerout'
     | 'dragstart'
     | 'drag'
     | 'dragend'
@@ -139,6 +147,14 @@ export interface EventHandlerMap {
     'mouseenter': MouseEvent;
     'mouseleave': MouseEvent;
     'contextmenu': MouseEvent;
+    'pointerdown': PointerEvent;
+    'pointermove': PointerEvent;
+    'pointerup': PointerEvent;
+    'pointercancel': PointerEvent;
+    'pointerenter': PointerEvent;
+    'pointerleave': PointerEvent;
+    'pointerover': PointerEvent;
+    'pointerout': PointerEvent;
     'dragstart': DragEvent;
     'drag': DragEvent;
     'dragend': DragEvent;
