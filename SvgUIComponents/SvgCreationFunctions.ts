@@ -24,6 +24,7 @@ export const marker = (options?: OptionsOf<typeof SvgLV1.MarkerC>) => new SvgLV1
 export const mask = (options?: OptionsOf<typeof SvgLV1.MaskC>) => new SvgLV1.MaskC(options);
 export const pattern = (options?: OptionsOf<typeof SvgLV1.PatternC>) => new SvgLV1.PatternC(options);
 export const image = (options?: OptionsOf<typeof SvgLV1.ImageC>) => new SvgLV1.ImageC(options);
+export const polygon = (options?: OptionsOf<typeof SvgLV1.PolygonC>) => new SvgLV1.PolygonC(options);
 export const filter = (options?: OptionsOf<typeof SvgLV1.FilterC>) => new SvgLV1.FilterC(options);
 
 // --- Icon Creation Utilities ---
