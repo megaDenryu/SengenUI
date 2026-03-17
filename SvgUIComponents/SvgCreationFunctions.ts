@@ -67,3 +67,8 @@ export function themedPath(d: string, color: string, style: IconStyle = {}) {
         strokeLinejoin: 'round'
     });
 }
+
+export function createIcon(size: number, color: string, paths: string[], style: IconStyle = {}) {
+  return svg({ width: size, height: size, viewBox: '0 0 24 24' })
+    .childs(paths.map(d => themedPath(d, color, style)));
+}
