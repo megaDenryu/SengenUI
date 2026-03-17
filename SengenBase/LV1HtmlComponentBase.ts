@@ -21,35 +21,8 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
      */
     protected abstract createDomProxy(): HtmlElementProxy;
 
-    public setAttribute(key: string, value: string): this {
-        this.dom.element.setAttribute(key, value);
-        return this;
-    }
-
     public setTabIndex(index: number): this {
         this.dom.element.tabIndex = index;
-        return this;
-    }
-
-    public toggleAttribute(key: string, isSet: boolean, valueIfTrue: string = "true"): this {
-        if (isSet) {
-            this.dom.element.setAttribute(key, valueIfTrue);
-        } else {
-            this.dom.element.removeAttribute(key);
-        }
-        return this;
-    }
-
-    /**
-     * 条件付きで属性を設定
-     * Why: data-attribute状態管理パターンで、状態に応じて属性値を切り替えるため
-     */
-    public setAttributeIf(ifAttr: { If: boolean, True: { attr: string, value: string }, False?: { attr: string, value: string } }): this {
-        if (ifAttr.If) {
-            return this.setAttribute(ifAttr.True.attr, ifAttr.True.value);
-        } else if (ifAttr.False !== undefined) {
-            return this.setAttribute(ifAttr.False.attr, ifAttr.False.value);
-        }
         return this;
     }
 

@@ -553,6 +553,44 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
     }
 
     /**
+     * data-attribute等の属性を設定（第12条: data-attributeによる状態管理）
+     * @param attr 属性名（例: "data-switch-state"）
+     * @param value 属性値（例: "on"）
+     */
+    public setAttribute(attr: string, value: string): this {
+        this.dom.element.setAttribute(attr, value);
+        return this;
+    }
+
+    /**
+     * 条件付きで属性を設定
+     * @param ifAttr If: 条件式, True: { attr, value }, False: { attr, value }（オプション）
+     */
+    public setAttributeIf(ifAttr: { If: boolean, True: { attr: string, value: string }, False?: { attr: string, value: string } }): this {
+        if (ifAttr.If) {
+            return this.setAttribute(ifAttr.True.attr, ifAttr.True.value);
+        } else if (ifAttr.False !== undefined) {
+            return this.setAttribute(ifAttr.False.attr, ifAttr.False.value);
+        }
+        return this;
+    }
+
+    /**
+     * 属性の値付きトグル（例: data-loading）
+     * @param key 属性名
+     * @param isSet trueなら属性を設定、falseなら削除
+     * @param valueIfTrue 設定時の値（デフォルト: "true"）
+     */
+    public toggleAttribute(key: string, isSet: boolean, valueIfTrue: string = "true"): this {
+        if (isSet) {
+            this.dom.element.setAttribute(key, valueIfTrue);
+        } else {
+            this.dom.element.removeAttribute(key);
+        }
+        return this;
+    }
+
+    /**
      * ツールチップ（title属性）を設定
      * @param tooltip ホバー時に表示するテキスト
      */
