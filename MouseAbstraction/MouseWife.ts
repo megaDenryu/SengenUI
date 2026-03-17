@@ -92,7 +92,10 @@ export class MouseWife {
 
     onドラッグ開始(e: PointerEvent): void {
         if (this.ドラッグ状態 !== ドラッグ状態.ドラッグ終了) {return;}
-        // Why: pointerdown時点ではcaptureしない。クリック/タップと区別するため、実際にドラッグが始まった時点でcaptureする
+        // Why: stopPropagationで親要素のMouseWifeにpointerdownが伝播するのを防ぐ。
+        // これがないと子のリサイズハンドルをつかんでも親の付箋ドラッグが始まってしまう。
+        // preventDefaultは呼ばない（clickイベント等の後続イベントを阻害しないため）。
+        e.stopPropagation();
         this._activePointerId = e.pointerId;
         this.ドラッグ状態 = ドラッグ状態.ドラッグ開始;
         const operationHistory = MouseStateManager.instance().マウスダウン時のマウス情報(e);
