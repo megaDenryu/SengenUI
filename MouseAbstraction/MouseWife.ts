@@ -2,7 +2,7 @@ import { MouseStateManager } from "./MouseState";
 import { 二次マウス操作情報履歴 } from "./MouseState";
 import { ビューポート座標値 } from "../SengenBase/css長さ単位";
 import { LV1HtmlComponentBase } from "../SengenBase/LV1HtmlComponentBase";
-import { DocumentBody } from "../LV1UIComponents/DocumentBodyC";
+
 
 export enum ドラッグ状態 {
     ドラッグ開始,
@@ -69,14 +69,13 @@ export class MouseWife {
     dragHandle: LV1HtmlComponentBase;
     constructor(dragHandle: LV1HtmlComponentBase) {
         this.dragHandle = dragHandle;
-        dragHandle.setStyleCSS({ cursor: 'grab' })
-                .onMouseDown(this.onドラッグ開始.bind(this))
-                .onMouseMove(this.onドラッグ中.bind(this))
-                .onMouseUp(this.onドラッグ終了.bind(this));
-        // contextmenuイベントは contextmenu は CommonEventType に含まれないため直接addEventListener
-        dragHandle.dom.element.addEventListener('contextmenu', this.on右クリック.bind(this));
-        DocumentBody().addEventListener('mousemove', this.onドラッグ中.bind(this))
-                      .addEventListener('mouseup', this.onドラッグ終了.bind(this));
+        dragHandle.setStyleCSS({ cursor: 'grab', touchAction: 'none' })
+                .onPointerDown(this.onドラッグ開始.bind(this))
+                .onPointerMove(this.onドラッグ中.bind(this))
+                .onPointerUp(this.onドラッグ終了.bind(this));
+        dragHandle.addTypedEventListener('contextmenu', this.on右クリック.bind(this));
+        document.addEventListener('pointermove', this.onドラッグ中.bind(this));
+        document.addEventListener('pointerup', this.onドラッグ終了.bind(this));
     }
 
     public ドラッグ連動登録(ドラッグに連動可能: Iドラッグに連動可能):this {
@@ -84,7 +83,7 @@ export class MouseWife {
         return this;
     }
 
-    onドラッグ開始(e: MouseEvent): void {
+    onドラッグ開始(e: PointerEvent): void {
         if (this.ドラッグ状態 !== ドラッグ状態.ドラッグ終了) {return;}
         this.ドラッグ状態 = ドラッグ状態.ドラッグ開始;
         const operationHistory = MouseStateManager.instance().マウスダウン時のマウス情報(e);
@@ -95,7 +94,7 @@ export class MouseWife {
         }
     }
 
-    onドラッグ中(e: MouseEvent): void {
+    onドラッグ中(e: PointerEvent): void {
         if (this.ドラッグ状態 === ドラッグ状態.ドラッグ終了) {return;}
         this.ドラッグ状態 = ドラッグ状態.ドラッグ中;
         const operationHistory = MouseStateManager.instance().マウス移動時のマウス情報(e);
@@ -106,15 +105,15 @@ export class MouseWife {
         }
     }
 
-    onドラッグ終了(e: MouseEvent): void {
+    onドラッグ終了(e: PointerEvent): void {
         this.dragHandle.setStyleCSS({cursor: 'grab'});
         if (this.ドラッグ状態 === ドラッグ状態.ドラッグ終了) { return; }
-        
+
         const previousState = this.ドラッグ状態;
         this.ドラッグ状態 = ドラッグ状態.ドラッグ終了;
         const operationHistory = MouseStateManager.instance().マウスアップ時のマウス情報(e);
         if (operationHistory == null) { return; }
-        
+
         for (const 連動者 of this.ドラッグ連動者リスト) {
             イベント既定動作と伝搬を停止(e);
             連動者.onドラッグ終了(new Drag終了値(operationHistory));
@@ -132,7 +131,7 @@ export class MouseWife {
 }
 
 
-function イベント既定動作と伝搬を停止(event: MouseEvent): void {
+function イベント既定動作と伝搬を停止(event: PointerEvent): void {
     event.preventDefault();
     event.stopPropagation();
 }
