@@ -88,21 +88,26 @@ export class MouseWife {
         return this;
     }
 
+    private _activePointerId: number | null = null;
+
     onドラッグ開始(e: PointerEvent): void {
         if (this.ドラッグ状態 !== ドラッグ状態.ドラッグ終了) {return;}
-        // Why: setPointerCaptureでタッチデバイスでも要素外へ指が動いた場合にpointermoveを受け取れるようにする
-        this.dragHandle.dom.element.setPointerCapture(e.pointerId);
+        // Why: pointerdown時点ではcaptureしない。クリック/タップと区別するため、実際にドラッグが始まった時点でcaptureする
+        this._activePointerId = e.pointerId;
         this.ドラッグ状態 = ドラッグ状態.ドラッグ開始;
         const operationHistory = MouseStateManager.instance().マウスダウン時のマウス情報(e);
         this.dragHandle.setStyleCSS({cursor: 'grabbing'});
         for (const 連動者 of this.ドラッグ連動者リスト) {
-            イベント既定動作と伝搬を停止(e);
             連動者.onドラッグ開始(new Drag開始値(operationHistory));
         }
     }
 
     onドラッグ中(e: PointerEvent): void {
         if (this.ドラッグ状態 === ドラッグ状態.ドラッグ終了) {return;}
+        // Why: 実際にドラッグ移動が始まった時点でcaptureする。これによりクリック系イベントを阻害しない
+        if (this.ドラッグ状態 === ドラッグ状態.ドラッグ開始 && this._activePointerId !== null) {
+            try { this.dragHandle.dom.element.setPointerCapture(this._activePointerId); } catch (_) {}
+        }
         this.ドラッグ状態 = ドラッグ状態.ドラッグ中;
         const operationHistory = MouseStateManager.instance().マウス移動時のマウス情報(e);
         if (operationHistory == null) { return; }
@@ -116,6 +121,7 @@ export class MouseWife {
         if (this.dragHandle.dom.element.hasPointerCapture(e.pointerId)) {
             this.dragHandle.dom.element.releasePointerCapture(e.pointerId);
         }
+        this._activePointerId = null;
         this.dragHandle.setStyleCSS({cursor: 'grab'});
         if (this.ドラッグ状態 === ドラッグ状態.ドラッグ終了) { return; }
 
@@ -124,7 +130,6 @@ export class MouseWife {
         if (operationHistory == null) { return; }
 
         for (const 連動者 of this.ドラッグ連動者リスト) {
-            イベント既定動作と伝搬を停止(e);
             連動者.onドラッグ終了(new Drag終了値(operationHistory));
         }
     }
