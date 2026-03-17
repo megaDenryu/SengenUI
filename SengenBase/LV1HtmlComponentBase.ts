@@ -100,6 +100,51 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
         return this;
     }
 
+    public onPointerDown(callback: TypedEventListener<'pointerdown'>): this {
+        this.addTypedEventListener('pointerdown', callback);
+        return this;
+    }
+
+    public onPointerMove(callback: TypedEventListener<'pointermove'>): this {
+        this.addTypedEventListener('pointermove', callback);
+        return this;
+    }
+
+    public onPointerUp(callback: TypedEventListener<'pointerup'>): this {
+        this.addTypedEventListener('pointerup', callback);
+        return this;
+    }
+
+    /**
+     * ロングプレス（長押し）イベントを登録する。
+     * Why: スマホではcontextmenuイベントが不安定なため、PointerEventsベースの独自検出を使う
+     */
+    public onLongPress(callback: (pos: { x: number, y: number }) => void, 閾値ms = 500, 移動閾値px = 10): this {
+        let タイマー: ReturnType<typeof setTimeout> | null = null;
+        let 開始位置: { x: number, y: number } | null = null;
+
+        this.addTypedEventListener('pointerdown', (e: PointerEvent) => {
+            開始位置 = { x: e.clientX, y: e.clientY };
+            タイマー = setTimeout(() => {
+                if (開始位置) callback(開始位置);
+                タイマー = null;
+                開始位置 = null;
+            }, 閾値ms);
+        });
+        this.addTypedEventListener('pointermove', (e: PointerEvent) => {
+            if (!開始位置 || !タイマー) return;
+            if (Math.hypot(e.clientX - 開始位置.x, e.clientY - 開始位置.y) > 移動閾値px) {
+                clearTimeout(タイマー);
+                タイマー = null;
+                開始位置 = null;
+            }
+        });
+        const cancel = () => { if (タイマー) { clearTimeout(タイマー); タイマー = null; } 開始位置 = null; };
+        this.addTypedEventListener('pointerup', cancel);
+        this.addTypedEventListener('pointercancel', cancel);
+        return this;
+    }
+
     public onFocus(callback: TypedEventListener<'focus'>): this {
         this.addTypedEventListener('focus', callback);
         return this;
