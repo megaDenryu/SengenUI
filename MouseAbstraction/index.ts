@@ -29,3 +29,5 @@ export type { GestureTypeType, IGestureResult, IGestureCallbacks } from './Mouse
 
 export { ドラッグ状態, Drag中値, Drag開始値, Drag終了値, MouseWife, 位置管理 } from './MouseWife';
 export type { Iドラッグに連動可能, Iドラッグ可能 } from './MouseWife';
+
+export { PointerWife } from './PointerWife';
