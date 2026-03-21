@@ -272,7 +272,7 @@ export class MyApp extends LV2HtmlComponentBase { ... }
 
 ---
 
-## 第5条：LV1糖衣構文の使用義務（旧第4条）
+## 第5条：LV1糖衣構文の使用義務
 
 LV1コンポーネントは `new DivC()` ではなく、常にLV1糖衣構文を使用する。View関数内でもOrchestrator内でも同様。`bind()` との組み合わせも問題なくできる。
 
@@ -289,7 +289,7 @@ new DivC({ class: styles.container })
 
 ---
 
-## 第6条：子要素の追加規則（旧第5条）
+## 第6条：子要素の追加規則
 
 ### 複数の子要素は `childs([...])`
 
@@ -331,7 +331,7 @@ button({ text: '送信' }).onClick(onSubmit)
 
 ---
 
-## 第7条：条件付き子要素（旧第6条） — `childIf` / `childIfs`
+## 第7条：条件付き子要素 — `childIf` / `childIfs`
 
 UIツリーの構築時に条件分岐が必要な場合、`childIf` / `childIfs` を使って宣言的に記述する。
 JSXのようにternaryを直接埋め込めないメソッドチェーン構文において、条件分岐を構造を壊さずに表現するための仕組み。
@@ -426,7 +426,7 @@ div({ class: styles.item })
 
 ---
 
-## 第8条：`return (...)` パターン（旧第7条）
+## 第8条：`return (...)` パターン
 
 View関数のreturn文では必ず `return (...)` パターンを使用する。
 Prettierはこのパターンを破壊するため**使用禁止**。ESLint + @stylistic/eslint-plugin を使用する。
@@ -463,7 +463,7 @@ return (                                  // return (
 
 ---
 
-## 第9条：Propsインターフェース（旧第8条）
+## 第9条：Propsインターフェース
 
 複数のPropsを受け取るView関数は、専用のインターフェースを定義する。
 
@@ -483,7 +483,7 @@ function explorerView(fileList: DivC) { ... }
 
 ---
 
-## 第10条：`bind()` と参照取得（旧第9条）
+## 第10条：`bind()` と参照取得
 
 Orchestrator内で子コンポーネントの参照が必要な場合、`bind()` を使って宣言的構造を壊さずに取得する。
 
@@ -502,7 +502,7 @@ protected createComponentRoot(): DivC {
 
 ---
 
-## 第11条：イベント登録（旧第10条）
+## 第11条：イベント登録
 
 1. LV1には `addTypedEventListener()` またはコンビニエンスメソッド（`.onClick()` 等）で登録する。`addEventListener()` は禁止。
 2. LV2への外部からのコールバック登録はインターフェース注入で行う。LV2にpublicなコールバック登録メソッドを生やすのはアンチパターン。
@@ -532,7 +532,7 @@ export class EditorView extends LV2HtmlComponentBase {
 
 ---
 
-## 第12条：スタイリング（旧第11条） — Vanilla Extract
+## 第12条：スタイリング — Vanilla Extract
 
 ### 必須ルール
 
@@ -565,7 +565,7 @@ element.setStyleCSS({ height: `${h}px` });
 
 ---
 
-## 第13条：data-attribute による状態管理（旧第12条）
+## 第13条：data-attribute による状態管理
 
 コンポーネントの見た目の状態は、CSSクラスの付け外しではなく **data属性** で管理する。
 
@@ -618,7 +618,7 @@ this._root.toggleAttribute("data-loading", isLoading);
 
 ---
 
-## 第14条：キャンバスアプリケーション固有ルール（旧第13条）
+## 第14条：キャンバスアプリケーション固有ルール
 
 Miro風エディタ等、キャンバス上に配置物を並べるUIを作る場合の追加規約。
 
@@ -648,7 +648,7 @@ export class 配置物zIndex {
 
 ---
 
-## 第15条：コンテンツスロットのレイアウト契約（旧第14条）
+## 第15条：コンテンツスロットのレイアウト契約
 
 LV2コンポーネントが「ここに外部のコンポーネントを注入してよい」というスロット（コンテンツ領域）を公開する場合、そのスロットが子に対して何を保証するかを明示しなければならない。
 
