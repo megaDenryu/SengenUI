@@ -383,12 +383,25 @@ export class HtmlElementProxy extends ElementProxy<HTMLElement> {
         );
     }
     
+    // [megadenryu_support_ui からの意見]
+    // display = 'block' のハードコードにより、CSSクラスで display:flex や
+    // display:grid を指定しているコンポーネントに対して show() を呼ぶと
+    // display が block で上書きされ、レイアウトが崩壊する。
+    //
+    // 提案: display = '' （空文字＝インラインスタイル削除）に変更すれば、
+    // CSSクラス側の display 値がそのまま復元される。
+    // hide() の display = 'none' はそのままでよい。
+    // visibility と opacity も同様に '' で消すのが安全。
+    //
+    // 現状 megadenryu_support_ui 側では show()/hide() を使わず
+    // element.style.display = 'none' / '' で独自に制御して回避している。
+    // (VscodeShellLayout/src/エディタエリア/エディタエリア.ts 参照)
     show(): void {
         this._element.style.display = 'block';
         this._element.style.visibility = 'visible';
         this._element.style.opacity = '1';
     }
-    
+
     hide(): void {
         this._element.style.display = 'none';
         this._element.style.visibility = 'hidden';
