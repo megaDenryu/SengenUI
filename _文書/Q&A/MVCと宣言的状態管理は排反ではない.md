@@ -55,9 +55,10 @@ UIアプリケーション設計で選択すべき軸を整理する:
 | MVC | データ + ロジック | 表示 | Controller |
 | MVVM | データ + ロジック | 表示 + バインディング | ViewModel |
 | Flux/Redux | Store + Reducer | Component | dispatch |
-| SengenUI方式 | 状態クラス + サービス | View関数 + View部品 | Orchestrator |
 
 どれも「状態」「表示」「その間を繋ぐもの」が存在する。名前が違うだけ。
+
+SengenUIガイドが規定するのはView層（View関数 + View部品）とOrchestratorの構造のみ。Model側の状態管理方式は規定しない。OOPクラス、Reducer、状態マシン、またはそれらの組み合わせを、ドメインに応じて選択する。
 
 ### 軸2: 状態遷移の記述スタイル（状態の問題）
 

@@ -600,6 +600,63 @@ function 通信を開始する<T>(
 }
 ```
 
+### ハイブリッド: OOPとFPの組み合わせ
+
+1つのドメインの中で、関心ごとに応じてOOPとFPを使い分ける。背景: [MVCと宣言的状態管理は排反ではない](../Q&A/MVCと宣言的状態管理は排反ではない.md)
+
+| 関心 | 手法 | 理由 |
+|---|---|---|
+| 状態遷移ロジック | FP（Reducer / 純粋関数） | テスト容易、副作用なし |
+| 副作用を伴う操作 | OOP（サービスクラス） | ライフサイクル管理、リソース保持 |
+| 状態の保持と通知 | モデルセル | OOP/FPどちらとも組める |
+| 派生値 | FP（派生セル） | 宣言的 |
+| View構築 | FP（View関数） | 純粋 |
+| 配線 | OOP（Orchestrator） | 複数の購読とイベントハンドラを管理 |
+
+```typescript
+// FP: 状態遷移を純粋関数で定義
+function チャットリデューサー(状態: チャット状態, 操作: チャット操作): チャット状態 { ... }
+
+// ReducerStore: FP（Reducer）+ モデルセル（通知）の合成
+const チャットStore = new ReducerStore(初期状態, チャットリデューサー);
+
+// OOP: 副作用（WebSocket接続）を管理するサービス
+class チャットWebSocketサービス implements I破棄可能 {
+    constructor(private _store: ReducerStore<チャット状態, チャット操作>) {
+        this._ws = new WebSocket(url);
+        this._ws.onmessage = (e) => {
+            this._store.dispatch({ kind: "メッセージ受信", メッセージ: JSON.parse(e.data) });
+        };
+    }
+    送信する(テキスト: string): void { this._ws.send(テキスト); }
+    dispose(): void { this._ws.close(); }
+}
+
+// OOP: Orchestratorが配線
+class チャットOrchestrator extends LV2HtmlComponentBase implements I破棄可能 {
+    constructor(
+        private _store: ReducerStore<チャット状態, チャット操作>,
+        private _wsサービス: チャットWebSocketサービス,
+    ) {
+        super();
+        this._componentRoot = this.createComponentRoot();
+        this._store.購読する((状態) => this._メッセージリスト.全件更新する(状態.メッセージ一覧));
+    }
+
+    protected createComponentRoot(): DivC {
+        return (
+            div({ class: styles.root }).childs([
+                this._メッセージリスト,
+                inputView({
+                    on送信: (テキスト) => this._wsサービス.送信する(テキスト),
+                })])
+        );
+    }
+
+    dispose(): void { this._wsサービス.dispose(); }
+}
+```
+
 ---
 
 ## 第8章: Model-View配線
