@@ -711,6 +711,37 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
         }
         return this;
     }
+
+    // === DOM マウント ===
+
+    /**
+     * コンポーネントを指定のDOM要素の子として追加する。
+     * エントリポイントでルートコンポーネントをDOMツリーに接続するために使う。
+     * Why: dom.elementへの直接アクセスをカプセル化し、
+     * document.body.appendChild(this.dom.element) のパターンを公式APIとして提供する。
+     */
+    public マウントする(親要素: HTMLElement): this {
+        親要素.appendChild(this.dom.element);
+        return this;
+    }
+
+    /**
+     * document.bodyにマウントする便利メソッド
+     */
+    public bodyにマウントする(): this {
+        return this.マウントする(document.body);
+    }
+
+    /**
+     * 指定IDのDOM要素にマウントする便利メソッド
+     */
+    public idでマウントする(elementId: string): this {
+        const 要素 = document.getElementById(elementId);
+        if (!要素) {
+            throw new Error(`マウント先の要素が見つかりません: #${elementId}`);
+        }
+        return this.マウントする(要素);
+    }
 }
 
 // SvgContainerBaseの派生クラスでも、HTMLの子要素になれるのはSvgC（<svg>タグ）だけです。他のコンテナ要素は全てSVG名前空間内でのみ有効です。
