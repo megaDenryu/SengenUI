@@ -11,8 +11,8 @@ export interface IDragAble {
 export class DragMover {
     private _iHasComponent: HaveHtmlElementProxy;
     private _dragging: boolean = false;
-    private _startX: number;
-    private _startY: number;
+    private _startX: number = 0;
+    private _startY: number = 0;
     private _offsetX: number = 0;
     private _offsetY: number = 0;
     private _enableDrag: boolean = true;

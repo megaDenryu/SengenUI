@@ -13,7 +13,7 @@ export abstract class LV2HtmlComponentBase extends HtmlComponentBase implements 
      * 通常、これは内部に持つ主要なLV1コンポーネントのDomProxyであるか、
      * LV2コンポーネント自身がルート要素として機能するLV1コンポーネントを生成してそのDomProxyを返します。
      */
-    protected _componentRoot: HtmlComponentBase;
+    protected _componentRoot!: HtmlComponentBase;
     public override get dom(): HtmlElementProxy {return this._componentRoot.dom;} //フレームワークを実装するために仕方なくpublicになってるだけなので基底クラス以外がdomを直接参照することは禁止。重大な犯罪行為。重大なバグの元。使うやつは頭が悪い。
 
     constructor() {

@@ -13,7 +13,7 @@ import { HtmlAndSvgInterface } from "../../SengenBase/IUIComponent";
  * - 描画属性（fill, stroke等）
  */
 export abstract class SvgElementBase implements HaveSvgElementProxy, HtmlAndSvgInterface {
-    protected _svgDom: SvgElementProxy;
+    protected _svgDom!: SvgElementProxy;
 
     constructor() {
     }

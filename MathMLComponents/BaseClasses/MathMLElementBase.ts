@@ -10,7 +10,7 @@ import { HtmlAndSvgInterface } from "../../SengenBase/IUIComponent";
  * - MathML固有属性（mathcolor, mathsize等）
  */
 export abstract class MathMLElementBase implements HaveMathMLElementProxy, HtmlAndSvgInterface {
-    protected _mathmlDom: MathMLElementProxy;
+    protected _mathmlDom!: MathMLElementProxy;
 
     constructor() {
     }
