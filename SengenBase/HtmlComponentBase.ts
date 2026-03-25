@@ -496,22 +496,36 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
         return this;
     }
 
-    public bind(func:(component: this) => void): this {
+    /**
+     * チェーンを壊さずにコンポーネントへの参照取得や副作用を実行する。
+     * RxJS/lodashの tap() と同じ概念: 値を通過させつつ副作用を実行。
+     * 用途: this._field = ref のフィールド代入、this._array.push(ref) の配列収集
+     */
+    public tap(func:(component: this) => void): this {
         func(this);
         return this;
     }
 
+    /** @deprecated tap() を使用してください */
+    public bind(func:(component: this) => void): this {
+        return this.tap(func);
+    }
+
     /**
-     * 条件付きでbind関数を実行
-     * @param ifBind If: 条件式, True: 真の場合の関数, False: 偽の場合の関数（オプション）
+     * 条件付きでtap関数を実行
      */
-    public bindIf(ifBind: IFBind<this>): this {
-        if (ifBind.If) {
-            ifBind.True(this);
-        } else if (ifBind.False !== undefined) {
-            ifBind.False(this);
+    public tapIf(ifTap: IFBind<this>): this {
+        if (ifTap.If) {
+            ifTap.True(this);
+        } else if (ifTap.False !== undefined) {
+            ifTap.False(this);
         }
         return this;
+    }
+
+    /** @deprecated tapIf() を使用してください */
+    public bindIf(ifBind: IFBind<this>): this {
+        return this.tapIf(ifBind);
     }
 
 

@@ -707,7 +707,7 @@ export class ポーズ編集Orchestrator extends LV2HtmlComponentBase implements
         return (
             div({ class: styles.root }).childs([
                 button({ text: "保存" })
-                    .bind(btn => { this._保存ボタン = btn; })
+                    .tap(btn => { this._保存ボタン = btn; })
                     .onClick(() => this._サービス.ポーズを保存する(this._状態.現在のポーズ名.値)),
                 this._パーツ一覧を構築する()])
         );
@@ -953,29 +953,31 @@ div({ class: 技パネル }).childs(技ボタン群(技一覧, this._技選択))
 
 ---
 
-### 9.5 `bind()` による参照収集 — 宣言的ツリー内での副作用
+### 9.5 `tap()` による参照収集 — 宣言的ツリー内での副作用
 
-`bind()` は宣言的メソッドチェーンの中で参照を取得する唯一の方法。**積極的に使うこと。** 中間変数に切り出してからchildsに渡す方式は、ツリー構造が2段階に分離してしまうため非推奨。
+`tap()` は宣言的メソッドチェーンの中で参照を取得する唯一の方法。**積極的に使うこと。** 中間変数に切り出してからchildsに渡す方式は、ツリー構造が2段階に分離してしまうため非推奨。
+
+> **注:** 旧名 `bind()` は非推奨。`Function.prototype.bind()` との混同を避けるため `tap()` に改名した。
 
 #### 単一フィールドへの代入（第10条の基本パターン）
 
 ```typescript
 div({ class: コンテンツ })
-    .bind(d => { this._スロット = d; })
+    .tap(d => { this._スロット = d; })
 ```
 
-#### 配列への参照収集（map + bind の合わせ技）
+#### 配列への参照収集（map + tap の合わせ技）
 
-配列をmapしつつ、各要素の参照をbind()で収集する。ツリー構築を1つの宣言的な式に保てる。
+配列をmapしつつ、各要素の参照をtap()で収集する。ツリー構築を1つの宣言的な式に保てる。
 
 ```typescript
-// 推奨: bind() で配列に収集しつつ childs() に渡す
+// 推奨: tap() で配列に収集しつつ childs() に渡す
 this._タブ一覧 = [];
 div({ class: ツールバー }).childs(
     登録一覧.map(登録 =>
         button({ text: 登録.名前, class: タブ })
             .onClick(() => this._切り替え(登録.名前))
-            .bind(タブ => { this._タブ一覧.push(タブ); })))
+            .tap(タブ => { this._タブ一覧.push(タブ); })))
 ```
 
 ```typescript
@@ -986,11 +988,11 @@ div({ class: ツールバー }).childs(this._タブ一覧)
 
 **Why:** 「この親の子はこの配列で、各要素はこういう構造」という情報が1箇所に集約される。分離すると「どこで作られたものがどこに入るのか」を追う必要が出てくる。
 
-#### bind() の原則
+#### tap() の原則
 
-- **bind() は参照取得のためのAPI。** `this._field = ref` のフィールド代入、`this._array.push(ref)` の配列収集が主な用途
-- **副作用は最小限に。** bind内でDOM操作やAPI呼び出しを行わない
-- **チェーンを壊さない。** bind()は `this` を返すのでチェーンを続けられる
+- **tap() は参照取得のためのAPI。** `this._field = ref` のフィールド代入、`this._array.push(ref)` の配列収集が主な用途
+- **副作用は最小限に。** tap内でDOM操作やAPI呼び出しを行わない
+- **チェーンを壊さない。** tap()は `this` を返すのでチェーンを続けられる
 
 ---
 

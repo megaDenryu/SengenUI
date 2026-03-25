@@ -157,9 +157,14 @@ export abstract class MathMLElementBase implements HaveMathMLElementProxy, HtmlA
      * 自己参照を受け取るクロージャーを実行
      * メソッドチェーン中に追加の処理を行う際に使用
      */
-    public bind(callback: (self: this) => void): this {
+    public tap(callback: (self: this) => void): this {
         callback(this);
         return this;
+    }
+
+    /** @deprecated tap() を使用してください */
+    public bind(callback: (self: this) => void): this {
+        return this.tap(callback);
     }
 }
 

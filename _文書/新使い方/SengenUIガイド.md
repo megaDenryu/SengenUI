@@ -41,7 +41,7 @@ SengenUIを使ってUIコンポーネントを作るための統合ガイド。
 
 ### メリット
 
-1. **LV1の全メソッドが委譲なしで使える**: `setStyleCSS`, `addClass`, `childs`, `bind` 等がそのまま呼べる
+1. **LV1の全メソッドが委譲なしで使える**: `setStyleCSS`, `addClass`, `childs`, `tap` 等がそのまま呼べる
 2. **DOM要素が1つ**: LV2は `_componentRoot` 経由でラップするが、LV1拡張は素のHTML要素1つ。余計なdivが増えない
 3. **ドメインメソッドとLV1メソッドをチェーンできる**: 戻り値を `: this` にすれば型が維持される
 
@@ -215,7 +215,7 @@ export class EditorView extends LV2HtmlComponentBase {
 
 Orchestrator（LV2）同士が親子関係を持つ場合の通信パターン。
 
-**親→子（下方向）:** 親が `bind()` で子の参照を持ち、後から指示を出す。
+**親→子（下方向）:** 親が `tap()` で子の参照を持ち、後から指示を出す。
 
 ```typescript
 protected createComponentRoot(): DivC {
@@ -223,7 +223,7 @@ protected createComponentRoot(): DivC {
         div({ class: styles.app }).childs([
             headerView({ onRun: () => this._editor.実行() }),
             new EditorView(this.model)
-                .bind(editor => { this._editor = editor; })])
+                .tap(editor => { this._editor = editor; })])
     );
 }
 ```
@@ -276,14 +276,14 @@ export class MyApp extends LV2HtmlComponentBase { ... }
 
 ## 第5条：LV1糖衣構文の使用義務
 
-LV1コンポーネントは `new DivC()` ではなく、常にLV1糖衣構文を使用する。View関数内でもOrchestrator内でも同様。`bind()` との組み合わせも問題なくできる。
+LV1コンポーネントは `new DivC()` ではなく、常にLV1糖衣構文を使用する。View関数内でもOrchestrator内でも同様。`tap()` との組み合わせも問題なくできる。
 
 ```typescript
 // 正しい
 div({ class: styles.container })
 span({ text: 'Hello' })
 button({ text: '送信' }).onClick(onSubmit)
-div({ class: styles.root }).bind(self => { this._root = self; })
+div({ class: styles.root }).tap(self => { this._root = self; })
 
 // 違反
 new DivC({ class: styles.container })
@@ -408,7 +408,7 @@ div().childIfs([
 | **属性** | `setAttributeIf` | 条件付きの属性設定（data-attribute状態管理に最適） |
 | **座標** | `setViewportPositionIf`, `setDocumentPositionIf`, `setOffsetPositionIf` | 条件付きの位置設定 |
 | **表示** | `showIf`, `hideIf` | 条件付きの表示/非表示切り替え |
-| **汎用** | `bindIf`, `setTooltipIf`, `deleteIf`, `addBehaviorIf` | その他の条件付き操作 |
+| **汎用** | `tapIf`, `setTooltipIf`, `deleteIf`, `addBehaviorIf` | その他の条件付き操作 |
 
 #### `setAttributeIf` — data-attribute状態管理との組み合わせ
 
@@ -485,19 +485,23 @@ function explorerView(fileList: DivC) { ... }
 
 ---
 
-## 第10条：`bind()` と参照取得
+## 第10条：`tap()` と参照取得
 
-Orchestrator内で子コンポーネントの参照が必要な場合、`bind()` を使って宣言的構造を壊さずに取得する。
+Orchestrator内で子コンポーネントの参照が必要な場合、`tap()` を使って宣言的構造を壊さずに取得する。
+
+`tap()` はRxJS/lodashの `tap` と同じ概念: チェーンを壊さずに副作用（参照取得等）を実行し、自身を返す。
+
+> **注:** 旧名 `bind()` は非推奨。`Function.prototype.bind()` との混同を避けるため `tap()` に改名した。`bind()` は後方互換のため残っているが、新規コードでは `tap()` を使うこと。
 
 ```typescript
 protected createComponentRoot(): DivC {
     return (
         div({ class: styles.root }).childs([
             button({ text: "送信" })
-                .bind(btn => { this._submitButton = btn; })
+                .tap(btn => { this._submitButton = btn; })
                 .onClick(() => this.handleSubmit()),
             span({ text: "準備完了" })
-                .bind(span => { this._status = span; })])
+                .tap(s => { this._status = s; })])
     );
 }
 ```

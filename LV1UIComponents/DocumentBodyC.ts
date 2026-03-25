@@ -204,9 +204,14 @@ export class DocumentBodyC {
      * @param func バインドする関数
      * @returns this（メソッドチェーン用）
      */
-    public bind(func: (component: this) => void): this {
+    public tap(func: (component: this) => void): this {
         func(this);
         return this;
+    }
+
+    /** @deprecated tap() を使用してください */
+    public bind(func: (component: this) => void): this {
+        return this.tap(func);
     }
 
     /**

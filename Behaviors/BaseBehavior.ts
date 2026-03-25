@@ -19,9 +19,14 @@ export abstract class BaseBehavior implements IBehavior {
         };
     }
 
-    public bind(func: (self: this) => void): this {
+    public tap(func: (self: this) => void): this {
         func(this);
         return this;
+    }
+
+    /** @deprecated tap() を使用してください */
+    public bind(func: (self: this) => void): this {
+        return this.tap(func);
     }
 
     /**
