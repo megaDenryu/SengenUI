@@ -765,3 +765,83 @@ const サービス = new ポーズ操作サービス(状態, mockSender);
 assert(状態.パーツ群.get("頭")!.オンオフ.値 === "on");
 assert(状態.変更あり.値 === true);
 ```
+
+---
+
+## 第9章: 宣言的な繰り返しと条件分岐
+
+UIツリー構築中の `for` 文や `if` 文は手続き的で、SengenUIの宣言的メソッドチェーンの構造を壊す。代わりに `childs()` + `map()` / ジェネレーター、および `childIf` / `childIfs` を使う。
+
+### 使いどころ
+
+- データ配列からコンポーネントのリストを生成するとき
+- 条件に応じて子要素を出し分けるとき
+
+### パターン: 繰り返し — `childs()` + `map()` / ジェネレーター
+
+`childs()` は `Iterable` を受け取れる。配列の `.map()` やジェネレーター関数でコンポーネント列を返し、`childs()` に直接渡す。
+
+```typescript
+// 推奨: map() で宣言的に生成し childs() に渡す
+div({ class: styles.ツールバー }).childs(
+    登録一覧.map(登録 =>
+        button({ text: 登録.名前, class: styles.タブ })
+            .onClick(() => this._切り替え(登録.名前))))
+
+// 推奨: ジェネレーター関数で複雑なリストを生成
+function* ポケモンカード群(パーティー: ポケモン[]): Iterable<DivC> {
+    for (const ポケモン of パーティー) {
+        yield ポケモンカードView(ポケモン);
+    }
+}
+div({ class: styles.パーティー }).childs(ポケモンカード群(パーティー))
+```
+
+```typescript
+// 避けるべき: for文 + child() の手続き的構築
+const コンテナ = div({ class: styles.ツールバー });
+for (const 登録 of 登録一覧) {
+    const タブ = button({ text: 登録.名前 });
+    コンテナ.child(タブ);
+}
+```
+
+**Why:** for文 + `child()` はUIツリーの構造が読めない。`childs()` + `map()` なら、親と子の関係が宣言的に1つの式で表現される。
+
+### パターン: 条件分岐 — `childIf` / `childIfs`
+
+条件付きの子要素は `childIf` / `childIfs` で宣言的に表現する。`if` 文で `child()` を呼ばない。
+
+```typescript
+// 推奨: childIfs で条件付き要素と無条件要素を混在
+div({ class: styles.ヘッダー }).childIfs([
+    {
+        If: サーバーモード利用可能,
+        True: button({ text: "サーバー" }).onClick(onサーバー)
+    },
+    span({ text: タイトル }),
+    {
+        If: Boolean(ヘルプテキスト),
+        True: span({ text: ヘルプテキスト, class: styles.ヘルプ })
+    }
+])
+```
+
+```typescript
+// 避けるべき: if文で手続き的に子を追加
+const ヘッダー = div({ class: styles.ヘッダー });
+if (サーバーモード利用可能) {
+    ヘッダー.child(button({ text: "サーバー" }));
+}
+ヘッダー.child(span({ text: タイトル }));
+```
+
+### 判断基準
+
+| やりたいこと | 使うべきAPI |
+|---|---|
+| 配列からコンポーネントリストを作る | `childs(配列.map(...))` |
+| 複雑な条件でリストを作る | `childs(ジェネレーター関数())` |
+| 単一の条件付き子要素 | `childIf({ If, True, False? })` |
+| 条件付きと無条件を混在 | `childIfs([...])` |
+| **避ける** | `for` + `.child()` / `if` + `.child()` |
