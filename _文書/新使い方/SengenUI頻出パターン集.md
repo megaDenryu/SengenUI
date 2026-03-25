@@ -770,51 +770,53 @@ assert(状態.変更あり.値 === true);
 
 ## 第9章: 宣言的な繰り返しと条件分岐
 
-UIツリー構築中の `for` 文や `if` 文は手続き的で、SengenUIの宣言的メソッドチェーンの構造を壊す。代わりに `childs()` + `map()` / ジェネレーター、および `childIf` / `childIfs` を使う。
+SengenUIのメソッドチェーンは宣言的なUIツリーを表現する。この中に `for` 文や `if` 文を混ぜると手続き的になり、ツリー構造が読めなくなる。SengenUIが提供する宣言的APIで代替する。
 
-### 使いどころ
+**原則: UIツリー構築中に `for` / `if` を書かない。**
 
-- データ配列からコンポーネントのリストを生成するとき
-- 条件に応じて子要素を出し分けるとき
+---
 
-### パターン: 繰り返し — `childs()` + `map()` / ジェネレーター
+### 9.1 繰り返し — `childs()` + `map()` / ジェネレーター
 
 `childs()` は `Iterable` を受け取れる。配列の `.map()` やジェネレーター関数でコンポーネント列を返し、`childs()` に直接渡す。
 
 ```typescript
-// 推奨: map() で宣言的に生成し childs() に渡す
-div({ class: styles.ツールバー }).childs(
+// 推奨: map() で childs() に直接渡す
+div({ class: ツールバー }).childs(
     登録一覧.map(登録 =>
-        button({ text: 登録.名前, class: styles.タブ })
+        button({ text: 登録.名前, class: タブ })
             .onClick(() => this._切り替え(登録.名前))))
+```
 
+```typescript
 // 推奨: ジェネレーター関数で複雑なリストを生成
 function* ポケモンカード群(パーティー: ポケモン[]): Iterable<DivC> {
     for (const ポケモン of パーティー) {
         yield ポケモンカードView(ポケモン);
     }
 }
-div({ class: styles.パーティー }).childs(ポケモンカード群(パーティー))
+div({ class: パーティーエリア }).childs(ポケモンカード群(パーティー))
 ```
 
 ```typescript
 // 避けるべき: for文 + child() の手続き的構築
-const コンテナ = div({ class: styles.ツールバー });
+const コンテナ = div({ class: ツールバー });
 for (const 登録 of 登録一覧) {
-    const タブ = button({ text: 登録.名前 });
-    コンテナ.child(タブ);
+    コンテナ.child(button({ text: 登録.名前 }));
 }
 ```
 
-**Why:** for文 + `child()` はUIツリーの構造が読めない。`childs()` + `map()` なら、親と子の関係が宣言的に1つの式で表現される。
+**Why:** `for` + `child()` は親と子の関係がコードの構造から読めない。`childs(配列.map(...))` なら「この親の子はこの配列」と1つの式で宣言される。
 
-### パターン: 条件分岐 — `childIf` / `childIfs`
+---
 
-条件付きの子要素は `childIf` / `childIfs` で宣言的に表現する。`if` 文で `child()` を呼ばない。
+### 9.2 条件分岐 — `childIf` / `childIfs`
+
+条件付きの子要素は `childIf` / `childIfs` で宣言的に表現する。
 
 ```typescript
 // 推奨: childIfs で条件付き要素と無条件要素を混在
-div({ class: styles.ヘッダー }).childIfs([
+div({ class: ヘッダー }).childIfs([
     {
         If: サーバーモード利用可能,
         True: button({ text: "サーバー" }).onClick(onサーバー)
@@ -822,26 +824,165 @@ div({ class: styles.ヘッダー }).childIfs([
     span({ text: タイトル }),
     {
         If: Boolean(ヘルプテキスト),
-        True: span({ text: ヘルプテキスト, class: styles.ヘルプ })
+        True: span({ text: ヘルプテキスト, class: ヘルプ })
     }
 ])
 ```
 
 ```typescript
 // 避けるべき: if文で手続き的に子を追加
-const ヘッダー = div({ class: styles.ヘッダー });
+const ヘッダー = div();
 if (サーバーモード利用可能) {
     ヘッダー.child(button({ text: "サーバー" }));
 }
 ヘッダー.child(span({ text: タイトル }));
 ```
 
-### 判断基準
+---
 
-| やりたいこと | 使うべきAPI |
+### 9.3 属性・スタイル・表示の条件分岐 — IF系メソッド
+
+子要素以外の条件分岐にもIF系メソッドを使う。すべて `{ If: boolean, True: ..., False?: ... }` の統一インターフェース。
+
+#### `setAttributeIf` — data-attribute状態の条件設定
+
+第13条のdata-attribute状態管理と組み合わせる代表的なパターン。
+
+```typescript
+// 推奨: 構築時に初期状態を条件で設定
+div({ class: タブ })
+    .setAttributeIf({
+        If: isActive,
+        True: { attr: タブ状態.attribute, value: タブ状態.value.アクティブ },
+        False: { attr: タブ状態.attribute, value: タブ状態.value.非アクティブ }
+    })
+```
+
+```typescript
+// 避けるべき: if文で属性を手続き的に設定
+const タブ要素 = div({ class: タブ });
+if (isActive) {
+    タブ要素.setAttribute(タブ状態.attribute, タブ状態.value.アクティブ);
+} else {
+    タブ要素.setAttribute(タブ状態.attribute, タブ状態.value.非アクティブ);
+}
+```
+
+#### `showIf` / `hideIf` — 表示切替
+
+```typescript
+// 推奨: チェーン内で宣言的に表示制御
+span({ text: "エラー", class: エラー表示 })
+    .showIf({ If: hasError })
+```
+
+#### `setStyleCSSIf` — 条件付きスタイル
+
+```typescript
+// 推奨: 条件に応じてスタイルを適用
+div({ class: バー })
+    .setStyleCSSIf({
+        If: isHighlight,
+        True: { backgroundColor: '#ef5350', color: '#fff' },
+        False: { backgroundColor: '#9e9e9e' }
+    })
+```
+
+#### `addClassIf` — 条件付きクラス追加
+
+```typescript
+// 推奨: 条件に応じてCSSクラスを追加
+div({ class: 項目 })
+    .addClassIf({
+        If: isSelected,
+        True: 選択中クラス
+    })
+```
+
+---
+
+### 9.4 合わせ技: 繰り返し + 条件分岐
+
+実践では繰り返しと条件分岐が組み合わさることが多い。
+
+#### 配列をmapしつつ、各要素内で条件分岐
+
+```typescript
+div({ class: パーティーリスト }).childs(
+    パーティー.map(ポケモン =>
+        div({ class: カード })
+            .child(span({ text: ポケモン.名前 }))
+            .childIf({
+                If: ポケモン.状態異常 !== null,
+                True: span({ text: ポケモン.状態異常!, class: 状態ラベル })
+            })
+            .setAttributeIf({
+                If: ポケモン.ひんし,
+                True: { attr: "data-fainted", value: "true" }
+            })))
+```
+
+#### 配列をフィルタしてからmap
+
+条件に合う要素だけリストにしたい場合は `filter()` + `map()` を組み合わせる。`childIfs` 内に条件を書くより意図が明確。
+
+```typescript
+div({ class: 控えリスト }).childs(
+    控え一覧
+        .filter(控え => !控え.ひんし)
+        .map(控え =>
+            div({ text: `→ ${控え.名前}に交代`, class: 控え項目 })
+                .onClick(() => 交代する(控え))))
+```
+
+#### ジェネレーター内で条件分岐
+
+ジェネレーターなら `if` を使っても宣言的ツリーを壊さない（ジェネレーター内部は手続き的でもよい。外から見れば `Iterable` を返す純粋関数）。
+
+```typescript
+function* 技ボタン群(技一覧: 技[], on選択: (i: number) => void): Iterable<ButtonC> {
+    for (let i = 0; i < 技一覧.length; i++) {
+        if (技一覧[i].残りpp > 0) {
+            yield button({ text: 技一覧[i].名前 }).onClick(() => on選択(i));
+        }
+    }
+}
+
+div({ class: 技パネル }).childs(技ボタン群(技一覧, this._技選択))
+```
+
+---
+
+### 9.5 判断フロー
+
+```
+UIツリー構築中に繰り返しや条件分岐が必要
+│
+├─ 配列からコンポーネントリストを作りたい
+│   ├─ 変換が単純（1要素→1コンポーネント）→ childs(配列.map(...))
+│   ├─ フィルタが必要 → childs(配列.filter(...).map(...))
+│   └─ 複雑な条件/複数yield → childs(ジェネレーター関数())
+│
+├─ 子要素の有無を条件で切り替えたい
+│   ├─ 1つだけ → childIf({ If, True, False? })
+│   └─ 条件付きと無条件が混在 → childIfs([...])
+│
+├─ 属性/スタイル/表示を条件で切り替えたい
+│   ├─ data-attribute → setAttributeIf (第13条と組み合わせ)
+│   ├─ CSSスタイル → setStyleCSSIf
+│   ├─ CSSクラス → addClassIf / removeClassIf
+│   └─ 表示/非表示 → showIf / hideIf
+│
+└─ 上記で表現できない複雑なケース
+    → ジェネレーター関数に閉じ込める（外からはIterableに見える）
+```
+
+### 避けるべきパターン
+
+| 手続き的（NG） | 宣言的（推奨） |
 |---|---|
-| 配列からコンポーネントリストを作る | `childs(配列.map(...))` |
-| 複雑な条件でリストを作る | `childs(ジェネレーター関数())` |
-| 単一の条件付き子要素 | `childIf({ If, True, False? })` |
-| 条件付きと無条件を混在 | `childIfs([...])` |
-| **避ける** | `for` + `.child()` / `if` + `.child()` |
+| `for (...) { コンテナ.child(...) }` | `コンテナ.childs(配列.map(...))` |
+| `if (条件) { 親.child(子) }` | `親.childIf({ If: 条件, True: 子 })` |
+| `if (条件) { 要素.setAttribute(...) }` | `要素.setAttributeIf({ If: 条件, True: {...} })` |
+| `if (条件) { 要素.show() } else { 要素.hide() }` | `要素.showIf({ If: 条件 })` |
+| `const x = div(); /* 手続き加工 */; return x` | `return ( div().childs([...]) )` |
