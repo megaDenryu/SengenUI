@@ -370,24 +370,31 @@ globalStyle(
 
 ### 判断基準
 
-| 基準 | show/hide | 置換 |
+| 基準 | data-attribute切り替え | 置換 |
 |---|---|---|
 | 切り替え頻度 | 高い（タブ切り替え等） | 低い（ページ遷移等） |
 | 状態保持 | 必要（入力値、スクロール位置） | 不要 |
 | メモリ使用 | 両方分 | 片方分 |
 | 初期コスト | 両方の構築が必要 | 切り替え時に構築 |
 
-### パターンA: show/hide（状態を保持したいとき）
+### パターンA: data-attribute切り替え（状態を保持したいとき）
+
+`show()/hide()` は非推奨。第5章・第13条のdata-attributeパターンで表示/非表示を制御する。
 
 ```typescript
+// 状態定数を定義（第13条準拠）
+export const 表示状態 = {
+    attribute: "data-display",
+    value: { collapsed: "collapsed" },
+} as const;
+
+// CSS（globalStyle必須）
+globalStyle(`[${表示状態.attribute}="${表示状態.value.collapsed}"]`, { display: 'none !important' });
+
+// 切り替え
 モードを切り替える(モード: "編集" | "プレビュー"): void {
-    if (モード === "編集") {
-        this._編集パネル.show();
-        this._プレビューパネル.hide();
-    } else {
-        this._編集パネル.hide();
-        this._プレビューパネル.show();
-    }
+    this._編集パネル.toggleAttribute(表示状態.attribute, モード !== "編集", 表示状態.value.collapsed);
+    this._プレビューパネル.toggleAttribute(表示状態.attribute, モード !== "プレビュー", 表示状態.value.collapsed);
 }
 ```
 
@@ -868,12 +875,21 @@ if (isActive) {
 }
 ```
 
-#### `showIf` / `hideIf` — 表示切替
+#### ~~`showIf` / `hideIf`~~ — 非推奨
+
+`show()/hide()` は `display:'block'` をハードコードしCSSクラスのレイアウトを破壊するため非推奨。
+第5章・第13条のdata-attributeパターンで表示/非表示を制御すること。
 
 ```typescript
-// 推奨: チェーン内で宣言的に表示制御
+// 非推奨:
+span({ text: "エラー" }).showIf({ If: hasError })
+
+// 推奨: data-attribute + setAttributeIf で制御
 span({ text: "エラー", class: エラー表示 })
-    .showIf({ If: hasError })
+    .setAttributeIf({
+        If: !hasError,
+        True: { attr: 表示状態.attribute, value: 表示状態.value.collapsed }
+    })
 ```
 
 #### `setStyleCSSIf` — 条件付きスタイル
@@ -1014,7 +1030,7 @@ UIツリー構築中に繰り返しや条件分岐が必要
 │   ├─ data-attribute → setAttributeIf (第13条と組み合わせ)
 │   ├─ CSSスタイル → setStyleCSSIf
 │   ├─ CSSクラス → addClassIf / removeClassIf
-│   └─ 表示/非表示 → showIf / hideIf
+│   └─ 表示/非表示 → setAttributeIf + 表示状態定数（showIf/hideIfは非推奨）
 │
 └─ 上記で表現できない複雑なケース
     → ジェネレーター関数に閉じ込める（外からはIterableに見える）

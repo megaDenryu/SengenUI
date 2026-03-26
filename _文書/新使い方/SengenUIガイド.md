@@ -407,7 +407,7 @@ div().childIfs([
 | **スタイル/クラス** | `setStyleCSSIf`, `addClassIf`, `removeClassIf` | 条件付きのCSS操作 |
 | **属性** | `setAttributeIf` | 条件付きの属性設定（data-attribute状態管理に最適） |
 | **座標** | `setViewportPositionIf`, `setDocumentPositionIf`, `setOffsetPositionIf` | 条件付きの位置設定 |
-| **表示** | `showIf`, `hideIf` | 条件付きの表示/非表示切り替え |
+| **表示** | ~~`showIf`, `hideIf`~~ (非推奨) | `setAttributeIf` + 表示状態定数を使うこと |
 | **汎用** | `tapIf`, `setTooltipIf`, `deleteIf`, `addBehaviorIf` | その他の条件付き操作 |
 
 #### `setAttributeIf` — data-attribute状態管理との組み合わせ
