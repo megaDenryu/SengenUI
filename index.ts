@@ -7,6 +7,9 @@ export * from './SengenBase/SvgDomProxy';
 // Event types
 export * from './SengenBase/EventTypes';
 
+// 表示切替（show/hide の代替）
+export * from './SengenBase/表示切替定数';
+
 // Utilities
 export * from './SengenBase/css長さ単位';
 export * from './SengenBase/位置関係';
