@@ -91,7 +91,11 @@ export interface IHtmlComponentBase {
     hideIf(ifHide: { If: boolean }): this;
     
     // ユーティリティメソッド
+    tap(callback: (self: this) => void): this;
+    tapIf(ifTap: IFBind<this>): this;
+    /** @deprecated tap() を使用してください */
     bind(callback: (self: this) => void): this;
+    /** @deprecated tapIf() を使用してください */
     bindIf(ifBind: IFBind<this>): this;
     
     // ビヘイビア追加
