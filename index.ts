@@ -9,6 +9,7 @@ export * from './SengenBase/EventTypes';
 
 // 表示切替（show/hide の代替）
 export * from './SengenBase/表示切替定数';
+import './SengenBase/style.css';
 
 // Utilities
 export * from './SengenBase/css長さ単位';
