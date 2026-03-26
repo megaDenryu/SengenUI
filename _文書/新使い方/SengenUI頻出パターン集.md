@@ -875,16 +875,10 @@ if (isActive) {
 }
 ```
 
-#### ~~`showIf` / `hideIf`~~ — 非推奨
-
-`show()/hide()` は `display:'block'` をハードコードしCSSクラスのレイアウトを破壊するため非推奨。
-第5章・第13条のdata-attributeパターンで表示/非表示を制御すること。
+#### `setAttributeIf` — 条件付き表示切替
 
 ```typescript
-// 非推奨:
-span({ text: "エラー" }).showIf({ If: hasError })
-
-// 推奨: data-attribute + setAttributeIf で制御
+// data-attribute + setAttributeIf で表示/非表示を制御
 span({ text: "エラー", class: エラー表示 })
     .setAttributeIf({
         If: !hasError,
@@ -1030,7 +1024,7 @@ UIツリー構築中に繰り返しや条件分岐が必要
 │   ├─ data-attribute → setAttributeIf (第13条と組み合わせ)
 │   ├─ CSSスタイル → setStyleCSSIf
 │   ├─ CSSクラス → addClassIf / removeClassIf
-│   └─ 表示/非表示 → setAttributeIf + 表示状態定数（showIf/hideIfは非推奨）
+│   └─ 表示/非表示 → setAttributeIf + 表示状態定数
 │
 └─ 上記で表現できない複雑なケース
     → ジェネレーター関数に閉じ込める（外からはIterableに見える）
@@ -1043,5 +1037,5 @@ UIツリー構築中に繰り返しや条件分岐が必要
 | `for (...) { コンテナ.child(...) }` | `コンテナ.childs(配列.map(...))` |
 | `if (条件) { 親.child(子) }` | `親.childIf({ If: 条件, True: 子 })` |
 | `if (条件) { 要素.setAttribute(...) }` | `要素.setAttributeIf({ If: 条件, True: {...} })` |
-| `if (条件) { 要素.show() } else { 要素.hide() }` | `要素.showIf({ If: 条件 })` |
+| `if (条件) { 要素.show() } else { 要素.hide() }` | `要素.setAttributeIf({ If: !条件, True: { attr: 表示状態.attribute, value: 表示状態.value.collapsed } })` |
 | `const x = div(); /* 手続き加工 */; return x` | `return ( div().childs([...]) )` |
