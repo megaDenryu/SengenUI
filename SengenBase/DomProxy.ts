@@ -373,6 +373,12 @@ export class HtmlElementProxy extends ElementProxy<HTMLElement> {
         return this;
     }
 
+    /**
+     * @deprecated show()/hide() はインラインstyleを直接操作するため、
+     * CSSクラスの display:flex 等を破壊する。
+     * 表示/非表示はドメイン側で data-attribute + CSSルールで制御すること。
+     * 例: element.setAttribute('data-display', 'collapsed') + CSS [data-display="collapsed"] { display: none }
+     */
     get isShow(): boolean {
         const style = window.getComputedStyle(this._element);
         return (
@@ -382,26 +388,22 @@ export class HtmlElementProxy extends ElementProxy<HTMLElement> {
             document.body.contains(this._element)
         );
     }
-    
-    // [megadenryu_support_ui からの意見]
-    // display = 'block' のハードコードにより、CSSクラスで display:flex や
-    // display:grid を指定しているコンポーネントに対して show() を呼ぶと
-    // display が block で上書きされ、レイアウトが崩壊する。
-    //
-    // 提案: display = '' （空文字＝インラインスタイル削除）に変更すれば、
-    // CSSクラス側の display 値がそのまま復元される。
-    // hide() の display = 'none' はそのままでよい。
-    // visibility と opacity も同様に '' で消すのが安全。
-    //
-    // 現状 megadenryu_support_ui 側では show()/hide() を使わず
-    // element.style.display = 'none' / '' で独自に制御して回避している。
-    // (VscodeShellLayout/src/エディタエリア/エディタエリア.ts 参照)
+
+    /**
+     * @deprecated show() は display:'block' をハードコードするため、
+     * CSSクラスの display:flex/grid 等を破壊する。
+     * ドメイン側で data-attribute + CSSルールで制御すること。
+     */
     show(): void {
         this._element.style.display = 'block';
         this._element.style.visibility = 'visible';
         this._element.style.opacity = '1';
     }
 
+    /**
+     * @deprecated hide() はインラインstyleを3重に設定するため副作用が大きい。
+     * ドメイン側で data-attribute + CSSルールで制御すること。
+     */
     hide(): void {
         this._element.style.display = 'none';
         this._element.style.visibility = 'hidden';

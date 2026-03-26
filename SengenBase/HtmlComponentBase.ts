@@ -627,14 +627,18 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
         return this;
     }
 
+    /**
+     * @deprecated インラインstyleのdisplay:'block'でCSSクラスのdisplay:flex等を破壊する。
+     * ドメイン側で data-attribute + CSSルールで表示/非表示を制御すること。
+     */
     public show(): this {
         this.dom.show();
         return this;
     }
 
     /**
-     * 条件付きで表示/非表示を切り替え
-     * @param ifShow If: 条件式（真なら表示、偽なら非表示）
+     * @deprecated show()/hide() の非推奨に伴い非推奨。
+     * ドメイン側で data-attribute + CSSルールで表示/非表示を制御すること。
      */
     public showIf(ifShow: { If: boolean }): this {
         if (ifShow.If) {
@@ -644,14 +648,18 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
         }
     }
 
+    /**
+     * @deprecated インラインstyleを3重に設定し副作用が大きい。
+     * ドメイン側で data-attribute + CSSルールで表示/非表示を制御すること。
+     */
     public hide(): this {
         this.dom.hide();
         return this;
     }
 
     /**
-     * 条件付きで非表示/表示を切り替え
-     * @param ifHide If: 条件式（真なら非表示、偽なら表示）
+     * @deprecated show()/hide() の非推奨に伴い非推奨。
+     * ドメイン側で data-attribute + CSSルールで表示/非表示を制御すること。
      */
     public hideIf(ifHide: { If: boolean }): this {
         if (ifHide.If) {
@@ -661,6 +669,10 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
         }
     }
 
+    /**
+     * @deprecated show()/hide() の非推奨に伴い非推奨。
+     * ドメイン側で data-attribute + CSSルールで表示/非表示を制御すること。
+     */
     public toggleShowHide(): this {
         if (this.dom.isShow) {
             this.hide();

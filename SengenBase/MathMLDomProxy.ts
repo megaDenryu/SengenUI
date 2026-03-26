@@ -384,6 +384,7 @@ export class MathMLElementProxy extends ElementProxy<MathMLElement> {
         Object.assign(this._element.style, styles);
     }
 
+    /** @deprecated ドメイン側で data-attribute + CSSルールで制御すること。 */
     get isShow(): boolean {
         const style = window.getComputedStyle(this._element);
         return (
@@ -393,13 +394,15 @@ export class MathMLElementProxy extends ElementProxy<MathMLElement> {
             document.body.contains(this._element)
         );
     }
-    
+
+    /** @deprecated ドメイン側で data-attribute + CSSルールで制御すること。 */
     show(): void {
         this._element.style.display = 'block';
         this._element.style.visibility = 'visible';
         this._element.style.opacity = '1';
     }
-    
+
+    /** @deprecated ドメイン側で data-attribute + CSSルールで制御すること。 */
     hide(): void {
         this._element.style.display = 'none';
         this._element.style.visibility = 'hidden';
