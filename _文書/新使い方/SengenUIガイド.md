@@ -75,6 +75,31 @@ new ポケモンアイコン("pikachu")
 
 - **1つのHTML要素にドメイン固有の振る舞いを足したい**とき（アイコン、バッジ、HPバー等）
 - **再利用実績があるか、今後の再利用が確実**なとき。1箇所でしか使わないならLV2やOrchestrator内のフィールドで十分
+- **生のDivC/SpanCをフィールドに持って外から繰り返し操作しているとき。** `clearChildren → setStyleCSS → childs` のような操作パターンが見えたら、LV1拡張にしてドメインメソッドを持たせるサイン
+
+### アンチパターン: コンテナフィールド
+
+DOM要素を内包するクラスで `コンテナ: DivC` フィールドを持つのは抽象度が低い。クラス自身がDivC/SpanCを継承すれば、コンテナフィールドが不要になり、配置や表示制御のメソッドをクラスに閉じ込められる。
+
+```typescript
+// 悪い例: コンテナフィールドを外から操作
+interface 行ビュー {
+    コンテナ: DivC;
+    // ...
+}
+行.コンテナ.setStyleCSS({ transform: `translateY(${y}px)`, visibility: 'visible' });
+
+// 良い例: クラス自身がDOM要素
+class 行ビュー extends DivC {
+    配置する(yオフセット: number): void {
+        this.setStyleCSS({ transform: `translateY(${yオフセット}px)`, visibility: 'visible' });
+    }
+    非表示にする(): void {
+        this.setStyleCSS({ visibility: 'hidden' });
+    }
+}
+行.配置する(y);
+```
 
 ### LV2との使い分け
 
@@ -246,6 +271,7 @@ protected createComponentRoot(): DivC {
 2. **子Orchestratorの生成パターンが複数ある** — Factoryクラスとして抽出。依存関係の配線をFactoryに任せる。
 3. **1つのOrchestratorが複数の独立した画面領域を管理している** — 領域ごとに子Orchestratorに分割。親は配線と配置だけ行う。
 4. **コールバックが3段以上のバケツリレーになっている** — 共有サービスを導入して中間層を飛ばす。
+5. **Orchestrator内にファクトリメソッドがある** — 構築ロジックはクラスのコンストラクタに閉じ込める。Orchestratorは構築設定を渡して `new` するだけにする。interfaceとファクトリメソッドの組み合わせより、コンストラクタを持つクラスを優先する。
 
 ### ファイル構成
 
