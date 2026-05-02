@@ -1,10 +1,12 @@
 import { LV2HtmlComponentBase } from "../SengenBase/LV2HtmlComponentBase";
+import type { HtmlComponentChild } from "../SengenBase/HtmlComponentBase";
 import { div, span, textInput, type DivC, type TextInputC } from "../LV1UIComponents";
 
 export interface 候補入力項目<T = unknown> {
     readonly 値: string;
     readonly 表示名?: string;
     readonly 補足?: string;
+    readonly 補足要素群?: readonly HtmlComponentChild[];
     readonly 元値?: T;
 }
 
@@ -160,13 +162,27 @@ export class 候補入力C<T = unknown> extends LV2HtmlComponentBase {
                     })
                     .childs([
                         span({ text: 候補.表示名 ?? 候補.値 })
-                            .setStyleCSS({ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }),
-                        span({ text: 候補.補足 ?? "" })
+                            .setStyleCSS({ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: "0", flex: "1 1 auto" }),
+                        div()
                             .setStyleCSS({
-                                color: "#7c8698",
-                                fontSize: "10px",
-                                whiteSpace: "nowrap",
-                                display: 候補.補足 ? "inline" : "none",
+                                display: 候補.補足要素群?.length || 候補.補足 ? "inline-flex" : "none",
+                                alignItems: "center",
+                                justifyContent: "flex-end",
+                                gap: "2px",
+                                flexShrink: "0",
+                                minWidth: "0",
+                            })
+                            .childIf({
+                                If: Boolean(候補.補足要素群?.length),
+                                True: div()
+                                    .setStyleCSS({ display: "inline-flex", gap: "2px", alignItems: "center", flexWrap: "nowrap" })
+                                    .childs(候補.補足要素群 ?? []),
+                                False: span({ text: 候補.補足 ?? "" })
+                                    .setStyleCSS({
+                                        color: "#7c8698",
+                                        fontSize: "10px",
+                                        whiteSpace: "nowrap",
+                                    }),
                             }),
                     ]);
             });
