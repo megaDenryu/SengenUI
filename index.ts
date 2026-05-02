@@ -27,6 +27,9 @@ export * from './Behaviors';
 // UI Components (Level 1)
 export * from './LV1UIComponents';
 
+// Composite UI Components
+export * from './CompositeUIComponents';
+
 // MathML Components
 export * from './MathMLComponents';
 

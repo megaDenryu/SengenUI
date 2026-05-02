@@ -1,0 +1,1 @@
+export * from './候補入力Component';
