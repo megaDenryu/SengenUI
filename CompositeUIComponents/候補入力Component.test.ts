@@ -50,4 +50,40 @@ describe("候補入力C", () => {
             HTMLElement.prototype.scrollIntoView = 元のscrollIntoView;
         }
     });
+
+    it("候補をクリックすると値を確定できる", () => {
+        const 候補入力 = new 候補入力C({
+            候補を取得する: () => [
+                { 値: "ガブリアス" },
+                { 値: "ボーマンダ" },
+            ],
+        });
+        候補入力.マウントする(document.body);
+        const 入力 = document.body.querySelector<HTMLInputElement>("input");
+        if (!入力) throw new Error("入力欄が見つからない");
+        Reflect.get(候補入力, "_入力欄").setValue("ボー");
+        Reflect.get(候補入力, "_候補を更新して表示する").call(候補入力);
+        const 候補行 = Reflect.get(候補入力, "_候補行群")[1]?.dom.element as HTMLElement | undefined;
+        if (!候補行) throw new Error("候補行が見つからない");
+        候補行.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+        候補行.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+        expect(候補入力.getValue()).toBe("ボーマンダ");
+    });
+
+    it("候補をホバーすると該当行が強調される", () => {
+        const 候補入力 = new 候補入力C({
+            候補を取得する: () => [
+                { 値: "ガブリアス" },
+                { 値: "ボーマンダ" },
+            ],
+        });
+        候補入力.マウントする(document.body);
+        Reflect.get(候補入力, "_入力欄").setValue("ボー");
+        Reflect.get(候補入力, "_候補を更新して表示する").call(候補入力);
+        const 候補行群 = Reflect.get(候補入力, "_候補行群") as { dom: { element: HTMLElement } }[];
+        const 候補行 = 候補行群[1]?.dom.element;
+        if (!候補行) throw new Error("候補行が見つからない");
+        候補行.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+        expect(候補行.style.backgroundColor).toBe("rgb(238, 244, 255)");
+    });
 });

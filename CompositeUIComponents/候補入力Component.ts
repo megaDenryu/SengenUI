@@ -133,6 +133,14 @@ export class 候補入力C<T = unknown> extends LV2HtmlComponentBase {
         this._入力欄.focus();
     }
 
+    private _候補行の見た目を同期する(): void {
+        this._候補行群.forEach((候補行, 番号) => {
+            候補行.setStyleCSS({
+                backgroundColor: 番号 === this._アクティブ候補番号 ? "#eef4ff" : "#ffffff",
+            });
+        });
+    }
+
     private _候補一覧を再描画する(): void {
         this._候補一覧コンテナ.clearChildren();
         this._候補一覧コンテナ.setStyleCSS({ display: this._候補表示中 ? "block" : "none" });
@@ -154,7 +162,7 @@ export class 候補入力C<T = unknown> extends LV2HtmlComponentBase {
                     })
                     .onMouseOver(() => {
                         this._アクティブ候補番号 = 番号;
-                        this._候補一覧を再描画する();
+                        this._候補行の見た目を同期する();
                     })
                     .onMouseDown((event) => {
                         event.preventDefault();
@@ -188,6 +196,7 @@ export class 候補入力C<T = unknown> extends LV2HtmlComponentBase {
             });
         this._候補行群 = 候補行群;
         this._候補一覧コンテナ.childs(候補行群);
+        this._候補行の見た目を同期する();
         this._アクティブ候補を表示範囲へ寄せる();
     }
 
