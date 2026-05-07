@@ -106,6 +106,47 @@ export class TextAreaC extends LV1HtmlComponentBase {
         return this;
     }
 
+    /**
+     * 選択範囲を設定する。同じ位置を指定するとキャレットがその位置に移動する。
+     */
+    public setSelectionRange(start: number, end: number): this {
+        const ta = this.dom.element as HTMLTextAreaElement;
+        ta.setSelectionRange(start, end);
+        return this;
+    }
+
+    public getSelectionStart(): number {
+        return (this.dom.element as HTMLTextAreaElement).selectionStart;
+    }
+
+    public getSelectionEnd(): number {
+        return (this.dom.element as HTMLTextAreaElement).selectionEnd;
+    }
+
+    /**
+     * 現在のコンテンツ量に合わせて高さを自動調整する。
+     * `height: auto` でいったんブラウザに再計算させてから scrollHeight を読むことで、
+     * 「縮む方向」のリサイズも正しく反映される。CSS で min-height / max-height を
+     * 設定しておくと、最小1行〜最大Nラインの範囲にクリップされ、それを超えると
+     * overflow-y: auto によりスクロールするようになる。
+     *
+     * 空のときの特殊処理:
+     *   `scrollHeight` は実装依存でフォントロード等の影響で 1 行ジャストにならず、
+     *   CSS min-height をやや超えた値を返すことがある (結果として 2 行分っぽくなる)。
+     *   inline `style.height` を完全に外し、CSS の `min-height` だけに任せることで
+     *   空時は確実に1行表示になる。
+     */
+    public autoFitToContent(): this {
+        const el = this.dom.element as HTMLTextAreaElement;
+        if (el.value.length === 0) {
+            el.style.height = '';
+            return this;
+        }
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight}px`;
+        return this;
+    }
+
     // === TextArea固有のイベントメソッド ===
 
     /**
