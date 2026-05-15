@@ -16,10 +16,49 @@ import { HtmlComponentChild } from "./HtmlComponentBase";
 
 // UIComponentBaseで使用される型定義をインポート
 
+/**
+ * 条件付き子要素 — childIf / childIfs に渡す。
+ *
+ * 重要 (破壊変更 2026-05-15、PokemonBattleAI 由来):
+ *   True / False は「子要素を返す関数 (lazy)」必須。
+ *
+ * # なぜ関数渡しか
+ *
+ * 旧 API では `True: HtmlComponentChild` (値渡し) だった。しかし JavaScript の
+ * オブジェクトリテラル評価仕様により、`{ If: cond, True: 何らかの式 }` を書いた瞬間に
+ * `True` 側の式は If の値に関係なく必ず評価される。
+ *
+ * 「子要素を生成するだけ」の式 (例: span({...})) なら副作用が無いので問題なかったが、
+ * **生成中に例外を投げる関数** (例: 引数検証で throw する factory) や **状態変更を伴う式**
+ * を True 側に書くと、If=false でも例外が走って UI 全体が落ちる。
+ *
+ * 実際の事故例 (PokemonBattleAI):
+ *   childIfs([
+ *     { If: Boolean(列.バッジ一覧), True: ... },
+ *     { If: Boolean(!列.バッジ一覧 && 列.サブテキスト),
+ *       True: タイプバッジ(列.サブテキスト ?? "", "小") },  // ← 列.サブテキスト=undefined のとき
+ *   ])                                                      //    タイプバッジ("") が例外を投げる
+ *
+ * このバグは 2 段構えで顕在化した:
+ *   (1) タイプバッジが「未知タイプを即例外」に変わった (silent fallthrough 禁止の規約準拠)
+ *   (2) childIfs の True 側 eager 評価で、If=false でもタイプバッジが呼ばれる
+ *
+ * (1) は規約上正しい改修。残るのは (2) の API 設計の歪み。関数渡し必須にすれば
+ * 条件が真のときだけ式が評価される直感的な挙動に直る。
+ *
+ * # 既存呼び出しの移行
+ *
+ * 旧: `{ If: cond, True: span({...}) }`
+ * 新: `{ If: cond, True: () => span({...}) }`
+ *
+ * `True: ` の後ろに `() => ` を機械的に追加する単純な書き換え。
+ */
 export interface IFChild {
     If: boolean,
-    True: HtmlComponentChild,
-    False?: HtmlComponentChild
+    /** 条件が真のときに評価される子要素ファクトリ。undefined を返すと子は追加しない */
+    True: () => HtmlComponentChild | undefined,
+    /** 条件が偽のときに評価される子要素ファクトリ。省略可。undefined を返すと子は追加しない */
+    False?: () => HtmlComponentChild | undefined
 }
 
 export interface IFClass {

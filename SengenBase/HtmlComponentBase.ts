@@ -81,14 +81,21 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
 
     
 
+    /**
+     * 条件付き子要素を追加。
+     *
+     * 破壊変更 (2026-05-15): True/False は子要素を返す関数 (lazy) 必須。
+     * 旧 API (値渡し) は JavaScript のオブジェクトリテラル評価仕様で True 側が
+     * 必ず先行評価され、副作用 (例外/状態変更) を持つ式を書くと If=false でも
+     * 走ってしまう設計バグがあった。関数渡しにして条件が真のときだけ評価される
+     * ように直した。詳細は IFChild の docstring を参照。
+     */
     public childIf(child:IFChild): this {
-        if (child.If == true) {
-            if (child.True == null) {return this;}
-            return this.child(child.True);
-        } else {
-            if (child.False == null) {return this;}
-            return this.child(child.False);
-        }
+        const ファクトリ = child.If == true ? child.True : child.False;
+        if (ファクトリ == null) { return this; }
+        const 子 = ファクトリ();
+        if (子 == null) { return this; }
+        return this.child(子);
     }
 
     public childIfs(childs:(IFChild|(HtmlComponentChild|undefined)[] | Iterable<HtmlComponentChild|undefined>|HtmlComponentChild|undefined)[]):this{

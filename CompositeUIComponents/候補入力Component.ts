@@ -182,10 +182,10 @@ export class 候補入力C<T = unknown> extends LV2HtmlComponentBase {
                             })
                             .childIf({
                                 If: Boolean(候補.補足要素群?.length),
-                                True: div()
+                                True: () => div()
                                     .setStyleCSS({ display: "inline-flex", gap: "2px", alignItems: "center", flexWrap: "nowrap" })
                                     .childs(候補.補足要素群 ?? []),
-                                False: span({ text: 候補.補足 ?? "" })
+                                False: () => span({ text: 候補.補足 ?? "" })
                                     .setStyleCSS({
                                         color: "#7c8698",
                                         fontSize: "10px",

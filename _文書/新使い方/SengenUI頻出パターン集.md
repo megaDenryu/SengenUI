@@ -821,17 +821,22 @@ for (const 登録 of 登録一覧) {
 
 条件付きの子要素は `childIf` / `childIfs` で宣言的に表現する。
 
+**2026-05-15 破壊変更: `True` / `False` は子要素を返す関数 (lazy) 必須。**
+旧 API (値渡し) は JavaScript のオブジェクトリテラル評価仕様で True 側が
+必ず先行評価され、副作用 (例外/状態変更) を持つ式を書くと If=false でも
+実行される設計バグがあった。関数渡しにすると条件が真のときだけ評価される。
+
 ```typescript
-// 推奨: childIfs で条件付き要素と無条件要素を混在
+// 推奨: childIfs で条件付き要素と無条件要素を混在 (True は関数渡し)
 div({ class: ヘッダー }).childIfs([
     {
         If: サーバーモード利用可能,
-        True: button({ text: "サーバー" }).onClick(onサーバー)
+        True: () => button({ text: "サーバー" }).onClick(onサーバー)
     },
     span({ text: タイトル }),
     {
         If: Boolean(ヘルプテキスト),
-        True: span({ text: ヘルプテキスト, class: ヘルプ })
+        True: () => span({ text: ヘルプテキスト, class: ヘルプ })
     }
 ])
 ```
@@ -924,7 +929,7 @@ div({ class: パーティーリスト }).childs(
             .child(span({ text: ポケモン.名前 }))
             .childIf({
                 If: ポケモン.状態異常 !== null,
-                True: span({ text: ポケモン.状態異常!, class: 状態ラベル })
+                True: () => span({ text: ポケモン.状態異常!, class: 状態ラベル })
             })
             .setAttributeIf({
                 If: ポケモン.ひんし,
