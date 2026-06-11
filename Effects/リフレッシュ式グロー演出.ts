@@ -23,14 +23,20 @@ export class リフレッシュ式グロー演出 {
     /** 活動を通知してグローを維持する。最初の呼び出しで点灯する */
     点灯を維持する(): void {
         if (this._アニメーション === null) {
-            this._アニメーション = this._対象.dom.element.animate(
-                [
-                    { filter: "drop-shadow(0 0 4px transparent)" },
-                    { filter: `drop-shadow(0 0 16px ${this._色})` },
-                    { filter: "drop-shadow(0 0 4px transparent)" },
-                ],
-                { duration: 1200, iterations: Infinity, easing: "ease-in-out" },
-            );
+            // Why: 演出は装飾。失敗しても呼び出し元(口パク等)を巻き添えにしない
+            try {
+                this._アニメーション = this._対象.dom.element.animate(
+                    [
+                        { filter: "drop-shadow(0 0 4px transparent)" },
+                        { filter: `drop-shadow(0 0 16px ${this._色})` },
+                        { filter: "drop-shadow(0 0 4px transparent)" },
+                    ],
+                    { duration: 1200, iterations: Infinity, easing: "ease-in-out" },
+                );
+            } catch (e) {
+                console.warn("[演出] グローの再生に失敗しました(アプリ動作には影響しません):", e);
+                return;
+            }
         }
         if (this._消灯タイマーID !== null) {
             window.clearTimeout(this._消灯タイマーID);
