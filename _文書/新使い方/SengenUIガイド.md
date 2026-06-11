@@ -587,6 +587,25 @@ export class EditorView extends LV2HtmlComponentBase {
 2. **`setStyleCSS()`** — 動的な値（座標、サイズ等の変数埋め込み）にのみ使用
 3. **文字列クラス** — 禁止
 
+### `selectors` に疑似要素を書いてはならない
+
+`selectors: { '&::placeholder': {...} }` は **ビルドエラー**（`Invalid selector`）になる。
+`::placeholder` / `::before` 等の疑似要素と、`:hover` / `:focus` 等の単純疑似クラスは
+**トップレベルキー**で書く。`selectors` は `${parent} &` のような複合セレクタ専用。
+
+```typescript
+// 正しい: トップレベルキー
+export const 入力欄 = style({
+    '::placeholder': { color: 'gray' },
+    ':focus': { borderColor: 'blue' },
+});
+
+// 違反: selectorsに疑似要素（ビルドエラー）
+export const 入力欄 = style({
+    selectors: { '&::placeholder': { color: 'gray' } },
+});
+```
+
 ### バッチ更新
 
 `setStyleCSS()` はまとめて1回で呼ぶ。個別呼び出しはリフロー発生の原因。
