@@ -28,6 +28,7 @@ const 星形クリップパス = "polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50
 export class クリックキラキラ演出 {
     private readonly _レイヤー: DivC;
     private readonly _設定: クリックキラキラ演出設定;
+    private _動作中 = false;
     // Why: removeEventListenerで同一参照を渡すためフィールドに束縛する
     private readonly _onPointerDown = (e: PointerEvent): void => {
         this._粒を散らす(e.clientX, e.clientY);
@@ -46,6 +47,8 @@ export class クリックキラキラ演出 {
     }
 
     開始する(): this {
+        if (this._動作中) return this;
+        this._動作中 = true;
         this._レイヤー.bodyにマウントする();
         // Why: capture指定でUI側のstopPropagationに影響されず全クリックを拾う
         document.addEventListener("pointerdown", this._onPointerDown, true);
@@ -53,6 +56,8 @@ export class クリックキラキラ演出 {
     }
 
     停止する(): void {
+        if (!this._動作中) return;
+        this._動作中 = false;
         document.removeEventListener("pointerdown", this._onPointerDown, true);
         this._レイヤー.delete();
     }
