@@ -1,44 +1,44 @@
 /**
- * ボタン押下点から円形の波紋が広がるゲーム的演出（マテリアルデザイン風）。
+ * クリック位置から円形の波紋が広がる、画面全体の入力フィードバック。
  *
- * Why: アプリ中の全ボタンに個別配線せず、documentのpointerdownを1箇所で捕捉して
- * 押下対象がボタンのときだけ波紋を出す。グローバルイベントの購読は
- * PointerWife等と同様にSengenUI内部に閉じる。
+ * Why: ボタンだけでなくパーツスイッチやキャンバスなど、クリック可能な場所すべてで
+ * 入力を受け付けた感触を返す。document購読はSengenUI内部に閉じる。
  */
 
 import { div } from '../LV1UIComponents/LV1CreationFunctions';
 import { DivC } from '../LV1UIComponents/DivComponent';
 
 
-export interface ボタンリップル演出設定 {
+export interface クリックリップル演出設定 {
     readonly 色: string;
     readonly 最大半径: number;
+    readonly 継続ミリ秒: number;
 }
 
-const 既定設定: ボタンリップル演出設定 = {
-    色: "rgba(255, 255, 255, 0.65)",
-    最大半径: 28,
+const 既定設定: クリックリップル演出設定 = {
+    色: "rgba(255, 255, 255, 0.8)",
+    最大半径: 34,
+    継続ミリ秒: 420,
 };
 
-export class ボタンリップル演出 {
+export class クリックリップル演出 {
     private readonly _レイヤー: DivC;
-    private readonly _設定: ボタンリップル演出設定;
+    private readonly _設定: クリックリップル演出設定;
     private _動作中 = false;
 
-    private readonly _onPointerDown = (e: PointerEvent): void => {
-        if (!(e.target instanceof Element)) return;
-        // Why: ボタン的なUI(button要素)に限定する。何でも波紋を出すとうるさい
-        if (e.target.closest("button") === null) return;
-        this._波紋を出す(e.clientX, e.clientY);
+    // Why: removeEventListenerで同一参照を渡すためフィールドに束縛する
+    private readonly _onPointerDown = (イベント: PointerEvent): void => {
+        this._波紋を出す(イベント.clientX, イベント.clientY);
     };
 
-    constructor(設定: Partial<ボタンリップル演出設定> = {}) {
+    constructor(設定: Partial<クリックリップル演出設定> = {}) {
         this._設定 = { ...既定設定, ...設定 };
+        // Why: 全画面の最前面に描くが、pointerEvents:noneで本来のUI操作は素通しする
         this._レイヤー = div({}).setStyleCSS({
             position: "fixed",
             inset: "0",
             pointerEvents: "none",
-            zIndex: "99998",
+            zIndex: "99999",
             overflow: "hidden",
         });
     }
@@ -47,6 +47,7 @@ export class ボタンリップル演出 {
         if (this._動作中) return this;
         this._動作中 = true;
         this._レイヤー.bodyにマウントする();
+        // Why: capture指定でUI側のstopPropagationに影響されず全クリックを拾う
         document.addEventListener("pointerdown", this._onPointerDown, true);
         return this;
     }
@@ -68,16 +69,17 @@ export class ボタンリップル演出 {
             height: `${直径}px`,
             borderRadius: "50%",
             border: `2px solid ${this._設定.色}`,
+            boxShadow: `0 0 8px ${this._設定.色}`,
             boxSizing: "border-box",
         });
         this._レイヤー.child(波紋);
 
         const アニメーション = 波紋.dom.element.animate(
             [
-                { transform: "scale(0.2)", opacity: 1 },
+                { transform: "scale(0.15)", opacity: 1 },
                 { transform: "scale(1)", opacity: 0 },
             ],
-            { duration: 380, easing: "ease-out" },
+            { duration: this._設定.継続ミリ秒, easing: "cubic-bezier(0.1, 0.7, 0.25, 1)" },
         );
         アニメーション.finished
             .then(() => 波紋.delete())
