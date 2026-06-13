@@ -26,13 +26,15 @@ function 安全に演出する(演出名: string, 実行: () => void): void {
 /** 要素の輪郭から光のリングが二重に外へ走る(スイッチON等の確定フィードバック) */
 export function パルス演出を再生する(対象: HtmlComponentBase, 色: string = "rgba(120, 200, 255, 0.9)"): void {
     安全に演出する("パルス", () => {
+        const 薄い色 = `color-mix(in srgb, ${色} 38%, transparent)`;
+        const 透明色 = `color-mix(in srgb, ${色} 0%, transparent)`;
         // Why: 単一リングだと一瞬で見えにくい。内側の濃いリングと外側の薄いリングを
         // 重ねて外へ押し出し、波が二重に走る確定感を出す。立ち上がりは鋭く減衰はなめらか
         対象.dom.element.animate(
             [
-                { boxShadow: `0 0 0 0 ${色}, 0 0 0 0 rgba(0, 0, 0, 0)`, offset: 0 },
-                { boxShadow: `0 0 0 3px ${色}, 0 0 0 10px rgba(120, 200, 255, 0.35)`, offset: 0.18 },
-                { boxShadow: "0 0 0 18px rgba(120, 200, 255, 0), 0 0 0 28px rgba(0, 0, 0, 0)", offset: 1 },
+                { boxShadow: `0 0 0 0 ${色}, 0 0 0 0 ${透明色}`, offset: 0 },
+                { boxShadow: `0 0 0 3px ${色}, 0 0 0 10px ${薄い色}`, offset: 0.18 },
+                { boxShadow: `0 0 0 18px ${透明色}, 0 0 0 28px ${透明色}`, offset: 1 },
             ],
             { duration: 600, easing: "cubic-bezier(0.1, 0.7, 0.25, 1)" },
         );

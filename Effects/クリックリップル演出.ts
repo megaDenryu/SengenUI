@@ -10,13 +10,13 @@ import { DivC } from '../LV1UIComponents/DivComponent';
 
 
 export interface クリックリップル演出設定 {
-    readonly 色: string;
+    readonly 色候補: ReadonlyArray<string>;
     readonly 最大半径: number;
     readonly 継続ミリ秒: number;
 }
 
 const 既定設定: クリックリップル演出設定 = {
-    色: "rgba(255, 255, 255, 0.8)",
+    色候補: ["rgba(255, 255, 255, 0.8)"],
     最大半径: 34,
     継続ミリ秒: 420,
 };
@@ -60,6 +60,7 @@ export class クリックリップル演出 {
     }
 
     private _波紋を出す(x: number, y: number): void {
+        const 色 = this._設定.色候補[Math.floor(Math.random() * this._設定.色候補.length)];
         const 直径 = this._設定.最大半径 * 2;
         const 波紋 = div({}).setStyleCSS({
             position: "absolute",
@@ -68,8 +69,8 @@ export class クリックリップル演出 {
             width: `${直径}px`,
             height: `${直径}px`,
             borderRadius: "50%",
-            border: `2px solid ${this._設定.色}`,
-            boxShadow: `0 0 8px ${this._設定.色}`,
+            border: `2px solid ${色}`,
+            boxShadow: `0 0 8px ${色}`,
             boxSizing: "border-box",
         });
         this._レイヤー.child(波紋);

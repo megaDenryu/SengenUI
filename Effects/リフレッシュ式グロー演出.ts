@@ -15,7 +15,7 @@ export class リフレッシュ式グロー演出 {
 
     constructor(
         private readonly _対象: HtmlComponentBase,
-        private readonly _色: string = "rgba(120, 200, 255, 0.8)",
+        private readonly _色: string | (() => string) = "rgba(120, 200, 255, 0.8)",
         // Why: 口パクの音素間隔より十分長く、発話終了後すぐ消える長さ
         private readonly _消灯遅延ミリ秒: number = 700,
     ) {}
@@ -25,10 +25,11 @@ export class リフレッシュ式グロー演出 {
         if (this._アニメーション === null) {
             // Why: 演出は装飾。失敗しても呼び出し元(口パク等)を巻き添えにしない
             try {
+                const 色 = typeof this._色 === "function" ? this._色() : this._色;
                 this._アニメーション = this._対象.dom.element.animate(
                     [
                         { filter: "drop-shadow(0 0 4px transparent)" },
-                        { filter: `drop-shadow(0 0 16px ${this._色})` },
+                        { filter: `drop-shadow(0 0 16px ${色})` },
                         { filter: "drop-shadow(0 0 4px transparent)" },
                     ],
                     { duration: 1200, iterations: Infinity, easing: "ease-in-out" },
