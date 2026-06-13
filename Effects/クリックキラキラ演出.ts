@@ -15,11 +15,13 @@ export interface クリックキラキラ演出設定 {
     readonly 粒数: number;
     /** 粒の色の候補。粒ごとにランダムに選ばれる */
     readonly 色候補: ReadonlyArray<string>;
+    readonly 強さ: number;
 }
 
 const 既定設定: クリックキラキラ演出設定 = {
     粒数: 10,
     色候補: ["#fff6c8", "#ffe066", "#a8e6ff", "#ffffff", "#d6b3ff"],
+    強さ: 1,
 };
 
 // Why: キラキラの光芒(4芒星)をclip-pathで表現する
@@ -64,16 +66,16 @@ export class クリックキラキラ演出 {
 
     private _粒を散らす(x: number, y: number): void {
         const { 粒数, 色候補 } = this._設定;
-        for (let i = 0; i < 粒数; i++) {
+        for (let i = 0; i < Math.ceil(粒数 * this._設定.強さ); i++) {
             const 色 = 色候補[Math.floor(Math.random() * 色候補.length)];
             this._粒を飛ばす(x, y, 色);
         }
     }
 
     private _粒を飛ばす(x: number, y: number, 色: string): void {
-        const サイズ = 5 + Math.random() * 8;
+        const サイズ = (5 + Math.random() * 8) * Math.max(0.4, this._設定.強さ);
         const 角度 = Math.random() * Math.PI * 2;
-        const 距離 = 24 + Math.random() * 56;
+        const 距離 = (24 + Math.random() * 56) * this._設定.強さ;
         const 継続ミリ秒 = 450 + Math.random() * 350;
         const 回転角 = (Math.random() - 0.5) * 360;
 

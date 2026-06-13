@@ -13,11 +13,13 @@ export interface マウストレイル演出設定 {
     /** 粒を生成する最小移動距離(px)。小さいほど密な尾になる */
     readonly 生成間隔距離: number;
     readonly 色候補: ReadonlyArray<string>;
+    readonly 強さ: number;
 }
 
 const 既定設定: マウストレイル演出設定 = {
     生成間隔距離: 14,
     色候補: ["#a8e6ff", "#d6b3ff", "#ffffff"],
+    強さ: 1,
 };
 
 export class マウストレイル演出 {
@@ -29,7 +31,7 @@ export class マウストレイル演出 {
 
     private readonly _onPointerMove = (e: PointerEvent): void => {
         const 距離 = Math.hypot(e.clientX - this._前回X, e.clientY - this._前回Y);
-        if (距離 < this._設定.生成間隔距離) return;
+        if (距離 < this._設定.生成間隔距離 / Math.max(0.25, this._設定.強さ)) return;
         this._前回X = e.clientX;
         this._前回Y = e.clientY;
         this._粒を残す(e.clientX, e.clientY);
@@ -64,7 +66,7 @@ export class マウストレイル演出 {
     private _粒を残す(x: number, y: number): void {
         const { 色候補 } = this._設定;
         const 色 = 色候補[Math.floor(Math.random() * 色候補.length)];
-        const サイズ = 3 + Math.random() * 4;
+        const サイズ = (3 + Math.random() * 4) * Math.max(0.4, this._設定.強さ);
 
         const 粒 = div({}).setStyleCSS({
             position: "absolute",

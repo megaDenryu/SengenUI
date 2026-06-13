@@ -13,12 +13,14 @@ export interface クリックリップル演出設定 {
     readonly 色候補: ReadonlyArray<string>;
     readonly 最大半径: number;
     readonly 継続ミリ秒: number;
+    readonly 強さ: number;
 }
 
 const 既定設定: クリックリップル演出設定 = {
     色候補: ["rgba(255, 255, 255, 0.8)"],
     最大半径: 34,
     継続ミリ秒: 420,
+    強さ: 1,
 };
 
 export class クリックリップル演出 {
@@ -61,16 +63,17 @@ export class クリックリップル演出 {
 
     private _波紋を出す(x: number, y: number): void {
         const 色 = this._設定.色候補[Math.floor(Math.random() * this._設定.色候補.length)];
-        const 直径 = this._設定.最大半径 * 2;
+        const 半径 = this._設定.最大半径 * this._設定.強さ;
+        const 直径 = 半径 * 2;
         const 波紋 = div({}).setStyleCSS({
             position: "absolute",
-            left: `${x - this._設定.最大半径}px`,
-            top: `${y - this._設定.最大半径}px`,
+            left: `${x - 半径}px`,
+            top: `${y - 半径}px`,
             width: `${直径}px`,
             height: `${直径}px`,
             borderRadius: "50%",
-            border: `2px solid ${色}`,
-            boxShadow: `0 0 8px ${色}`,
+            border: `${1 + this._設定.強さ}px solid ${色}`,
+            boxShadow: `0 0 ${8 * this._設定.強さ}px ${色}`,
             boxSizing: "border-box",
         });
         this._レイヤー.child(波紋);

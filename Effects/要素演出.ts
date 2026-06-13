@@ -24,7 +24,11 @@ function 安全に演出する(演出名: string, 実行: () => void): void {
 }
 
 /** 要素の輪郭から光のリングが二重に外へ走る(スイッチON等の確定フィードバック) */
-export function パルス演出を再生する(対象: HtmlComponentBase, 色: string = "rgba(120, 200, 255, 0.9)"): void {
+export function パルス演出を再生する(
+    対象: HtmlComponentBase,
+    色: string = "rgba(120, 200, 255, 0.9)",
+    強さ: number = 1,
+): void {
     安全に演出する("パルス", () => {
         const 薄い色 = `color-mix(in srgb, ${色} 38%, transparent)`;
         const 透明色 = `color-mix(in srgb, ${色} 0%, transparent)`;
@@ -33,8 +37,8 @@ export function パルス演出を再生する(対象: HtmlComponentBase, 色: s
         対象.dom.element.animate(
             [
                 { boxShadow: `0 0 0 0 ${色}, 0 0 0 0 ${透明色}`, offset: 0 },
-                { boxShadow: `0 0 0 3px ${色}, 0 0 0 10px ${薄い色}`, offset: 0.18 },
-                { boxShadow: `0 0 0 18px ${透明色}, 0 0 0 28px ${透明色}`, offset: 1 },
+                { boxShadow: `0 0 0 ${3 * 強さ}px ${色}, 0 0 0 ${10 * 強さ}px ${薄い色}`, offset: 0.18 },
+                { boxShadow: `0 0 0 ${18 * 強さ}px ${透明色}, 0 0 0 ${28 * 強さ}px ${透明色}`, offset: 1 },
             ],
             { duration: 600, easing: "cubic-bezier(0.1, 0.7, 0.25, 1)" },
         );
@@ -42,16 +46,16 @@ export function パルス演出を再生する(対象: HtmlComponentBase, 色: s
 }
 
 /** 要素全体が二段で強く明滅する(ポーズ適用等の大きな状態変化のフィードバック) */
-export function フラッシュ演出を再生する(対象: HtmlComponentBase): void {
+export function フラッシュ演出を再生する(対象: HtmlComponentBase, 強さ: number = 1): void {
     安全に演出する("フラッシュ", () => {
         // Why: 一段の明滅だと「パッ」で終わり効いた印象が弱い。鋭く強く光らせ、
         // いったん少し戻してもう一度光らせる二段明滅で「確かに効いた」手応えを出す
         対象.dom.element.animate(
             [
                 { filter: "brightness(1) saturate(1)", offset: 0 },
-                { filter: "brightness(2.4) saturate(1.5) contrast(1.1)", offset: 0.18 },
-                { filter: "brightness(1.25) saturate(1.1)", offset: 0.42 },
-                { filter: "brightness(1.8) saturate(1.3)", offset: 0.6 },
+                { filter: `brightness(${1 + 1.4 * 強さ}) saturate(${1 + 0.5 * 強さ}) contrast(${1 + 0.1 * 強さ})`, offset: 0.18 },
+                { filter: `brightness(${1 + 0.25 * 強さ}) saturate(${1 + 0.1 * 強さ})`, offset: 0.42 },
+                { filter: `brightness(${1 + 0.8 * 強さ}) saturate(${1 + 0.3 * 強さ})`, offset: 0.6 },
                 { filter: "brightness(1) saturate(1)", offset: 1 },
             ],
             { duration: 480, easing: "ease-out" },
@@ -60,15 +64,15 @@ export function フラッシュ演出を再生する(対象: HtmlComponentBase):
 }
 
 /** 要素がぼかしと透明から強く浮かび上がる登場演出(キャラ読み込み等) */
-export function 登場演出を再生する(対象: HtmlComponentBase): void {
+export function 登場演出を再生する(対象: HtmlComponentBase, 強さ: number = 1): void {
     安全に演出する("登場", () => {
         // Why: 直線的に現れるだけだと「登場した」感が薄い。深いぼかしと強い発光から始め、
         // くっきりする手前で一度輝度をオーバーシュートさせてから落ち着かせ、登場の瞬間を際立たせる。
         // transformはキャンバス操作と競合するため使わず、filter/opacityのみで表現する(本ファイル冒頭のWhy参照)
         対象.dom.element.animate(
             [
-                { opacity: 0, filter: "blur(12px) brightness(1.9)", offset: 0 },
-                { opacity: 1, filter: "blur(1px) brightness(1.5)", offset: 0.7 },
+                { opacity: Math.max(0, 1 - 強さ), filter: `blur(${12 * 強さ}px) brightness(${1 + 0.9 * 強さ})`, offset: 0 },
+                { opacity: 1, filter: `blur(${強さ}px) brightness(${1 + 0.5 * 強さ})`, offset: 0.7 },
                 { opacity: 1, filter: "blur(0px) brightness(1)", offset: 1 },
             ],
             { duration: 700, easing: "cubic-bezier(0.2, 0.7, 0.25, 1)" },
@@ -80,25 +84,26 @@ export function 登場演出を再生する(対象: HtmlComponentBase): void {
 export function スパーク演出を再生する(
     対象: HtmlComponentBase,
     色候補: ReadonlyArray<string> = ["#fff6c8", "#ffe066", "#aef3a0"],
+    強さ: number = 1,
 ): void {
-    安全に演出する("スパーク", () => スパークを実行する(対象, 色候補));
+    安全に演出する("スパーク", () => スパークを実行する(対象, 色候補, 強さ));
 }
 
-function スパークを実行する(対象: HtmlComponentBase, 色候補: ReadonlyArray<string>): void {
+function スパークを実行する(対象: HtmlComponentBase, 色候補: ReadonlyArray<string>, 強さ: number): void {
     const rect = 対象.dom.element.getBoundingClientRect();
     const 中心X = rect.left + rect.width / 2;
     const 中心Y = rect.top + rect.height / 2;
 
     // Why: 粒(飛沫)だけだと点の集まりで終わる。中心から広がる発光リング(波面)を先に置くと
     // 点火が外へ波及する祝福らしさが出る。クリックリップル演出と同じ波紋手法を要素中心に適用する
-    スパークリングを飛ばす(中心X, 中心Y, 色候補[Math.floor(Math.random() * 色候補.length)]);
+    スパークリングを飛ばす(中心X, 中心Y, 色候補[Math.floor(Math.random() * 色候補.length)], 強さ);
 
-    const 粒数 = 14;
+    const 粒数 = Math.ceil(14 * 強さ);
     for (let i = 0; i < 粒数; i++) {
         const 色 = 色候補[Math.floor(Math.random() * 色候補.length)];
-        const サイズ = 4 + Math.random() * 5;
+        const サイズ = (4 + Math.random() * 5) * Math.max(0.4, 強さ);
         const 角度 = (i / 粒数) * Math.PI * 2 + Math.random() * 0.6;
-        const 距離 = 30 + Math.random() * 40;
+        const 距離 = (30 + Math.random() * 40) * 強さ;
 
         // Why: 粒はレイアウトに属さないfixed要素としてbody直下に置き、終了後に即破棄する
         const 粒 = div({}).setStyleCSS({
@@ -132,9 +137,9 @@ function スパークを実行する(対象: HtmlComponentBase, 色候補: Reado
 }
 
 /** 要素中心から外へ広がって消える発光リング(スパークの波面) */
-function スパークリングを飛ばす(中心X: number, 中心Y: number, 色: string): void {
+function スパークリングを飛ばす(中心X: number, 中心Y: number, 色: string, 強さ: number): void {
     const 初期直径 = 14;
-    const 最大直径 = 90;
+    const 最大直径 = 90 * 強さ;
     const リング = div({}).setStyleCSS({
         position: "fixed",
         left: `${中心X - 初期直径 / 2}px`,
