@@ -30,6 +30,7 @@ export const numberInput = (options?: OptionsOf<typeof LV1.NumberInputC>) => new
 export const checkbox = (options?: OptionsOf<typeof LV1.CheckboxInputC>) => new LV1.CheckboxInputC(options);
 export const radio = (options: OptionsOf<typeof LV1.RadioInputC>) => new LV1.RadioInputC(options);
 export const fileInput = (options?: OptionsOf<typeof LV1.FileInputC>) => new LV1.FileInputC(options);
+export const colorInput = (options?: OptionsOf<typeof LV1.ColorInputC>) => new LV1.ColorInputC(options);
 export const select = (options?: OptionsOf<typeof LV1.SelectC>) => new LV1.SelectC(options);
 export const textarea = (options?: OptionsOf<typeof LV1.TextAreaC>) => new LV1.TextAreaC(options);
 export const label = (options?: OptionsOf<typeof LV1.LabelC>) => new LV1.LabelC(options);
