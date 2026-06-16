@@ -490,6 +490,18 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
         return this;
     }
 
+    // Why: setStyleCSS は Object.assign で CSS custom property(--x) を設定できない
+    // (CSSOM では style.setProperty 経由が必須)。custom property 専用の入口を分けて提供する。
+    public setCssVariable(name: `--${string}`, value: string): this {
+        this.style.setProperty(name, value);
+        return this;
+    }
+
+    public removeCssVariable(name: `--${string}`): this {
+        this.style.removeProperty(name);
+        return this;
+    }
+
     /**
      * 条件付きでCSSスタイルを設定
      * @param ifStyle If: 条件式, True: 真の場合のスタイル, False: 偽の場合のスタイル（オプション）
