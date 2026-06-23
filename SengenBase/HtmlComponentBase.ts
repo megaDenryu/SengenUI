@@ -64,6 +64,16 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
     }
 
     /**
+     * 外部ライブラリが生成したHTMLElementを子として追加する。
+     * Why: PixiJS等はSengenUIコンポーネントではなく素のcanvasを返すため、
+     * DOM接続だけをSengenUI側に閉じ込めてアプリコードの直接DOM操作を避ける。
+     */
+    public 外部HTML要素を子に追加する(element: HTMLElement): this {
+        this.dom.element.appendChild(element);
+        return this;
+    }
+
+    /**
      * ILV2MathMLComponentかどうかを判定
      */
     private isLV2MathMLComponent(obj: any): obj is ILV2MathMLComponent {
