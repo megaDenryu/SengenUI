@@ -31,6 +31,7 @@ export type CommonEventType =
     | 'pointermove'
     | 'pointerup'
     | 'pointercancel'
+    | 'wheel'
     | 'dragstart'
     | 'drag'
     | 'dragend'
@@ -147,6 +148,7 @@ export interface EventHandlerMap {
     'pointermove': PointerEvent;
     'pointerup': PointerEvent;
     'pointercancel': PointerEvent;
+    'wheel': WheelEvent;
     'dragstart': DragEvent;
     'drag': DragEvent;
     'dragend': DragEvent;

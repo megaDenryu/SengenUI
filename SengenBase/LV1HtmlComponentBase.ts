@@ -48,12 +48,14 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
      * 型安全なイベントリスナーを追加します
      * @param event イベントタイプ
      * @param listener イベントハンドラー
+     * @param options addEventListener の第3引数(passive/capture 等)
      */
     public addTypedEventListener<T extends CommonEventType>(
         event: T,
-        listener: TypedEventListener<T>
+        listener: TypedEventListener<T>,
+        options?: boolean | AddEventListenerOptions,
     ): this {
-        this.dom.element.addEventListener(event, listener as EventListener);
+        this.dom.element.addEventListener(event, listener as EventListener, options);
         return this;
     }
 
@@ -112,6 +114,26 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
 
     public onPointerUp(callback: TypedEventListener<'pointerup'>): this {
         this.addTypedEventListener('pointerup', callback);
+        return this;
+    }
+
+    /**
+     * ホイールイベントリスナーを追加する。
+     *
+     * Why (options を受け取る): ブラウザのデフォルトスクロール抑止のために passive: false を
+     *   指定する用途がある(拡縮UIやゲーム系操作)。 デフォルトの addEventListener は passive: true
+     *   相当のブラウザもあるため、 明示できるように options を受け入れる。
+     */
+    public onWheel(
+        callback: TypedEventListener<'wheel'>,
+        options?: boolean | AddEventListenerOptions,
+    ): this {
+        this.addTypedEventListener('wheel', callback, options);
+        return this;
+    }
+
+    public onContextMenu(callback: TypedEventListener<'contextmenu'>): this {
+        this.addTypedEventListener('contextmenu', callback);
         return this;
     }
 
