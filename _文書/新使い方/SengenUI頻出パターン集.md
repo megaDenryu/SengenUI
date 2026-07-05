@@ -17,30 +17,38 @@
 
 IDをキーにしてViewの参照をMapで管理する。追加O(1)、削除O(1)、ID指定アクセスO(1)。背景: [なぜ暗黙的な自動管理ではなく明示的な手動管理を選ぶのか](../Q&A/なぜ暗黙的な自動管理ではなく明示的な手動管理を選ぶのか.md)
 
+イベントはガイド第11条の配線ポートで受ける（コンストラクタでは受けない）。
+
 ```typescript
 export class タスクリストView extends LV2HtmlComponentBase {
     protected _componentRoot: DivC;
+    private readonly _配線 = new 配線ポート<Iタスクリスト配線>("タスクリストView");
     private readonly _リストコンテナ: DivC;
     private readonly _項目マップ = new Map<タスクID, タスク行View>();
 
-    constructor(private readonly _イベント: Iタスクリストイベント) {
+    constructor() {
         super();
         this._リストコンテナ = div({ class: styles.リスト });
         this._componentRoot = this.createComponentRoot();
     }
 
+    配線する(配線: Iタスクリスト配線): void {
+        this._配線.配線する(配線);
+    }
+
     protected createComponentRoot(): DivC {
         return (
             div({ class: styles.root }).childs([
-                headerView({ on追加: () => this._イベント.on追加() }),
+                headerView({ on追加: () => this._配線.先.on追加() }),
                 this._リストコンテナ])
         );
     }
 
     追加する(タスク: タスク): void {
-        const 行 = new タスク行View(タスク, {
-            on削除: () => this._イベント.on削除(タスク.id),
-            on完了: () => this._イベント.on完了(タスク.id),
+        const 行 = new タスク行View(タスク);
+        行.配線する({
+            on削除: () => this._配線.先.on削除(タスク.id),
+            on完了: () => this._配線.先.on完了(タスク.id),
         });
         this._項目マップ.set(タスク.id, 行);
         this._リストコンテナ.child(行);
@@ -211,18 +219,23 @@ globalStyle(`${コンテナcss}[${読込状態.attribute}="${読込状態.value.
 ### パターン: DOMが真実。値の取得は `getValue()` で済む
 
 ```typescript
-interface I検索フォームイベント {
-    on検索: (クエリ: string) => void;
+interface I検索フォーム配線 {
+    on検索(クエリ: string): void;
 }
 
 export class 検索フォームView extends LV2HtmlComponentBase {
     protected _componentRoot: DivC;
+    private readonly _配線 = new 配線ポート<I検索フォーム配線>("検索フォームView");
     private readonly _入力欄: InputC;
 
-    constructor(private readonly _イベント: I検索フォームイベント) {
+    constructor() {
         super();
         this._入力欄 = input({ type: "text", placeholder: "検索..." });
         this._componentRoot = this.createComponentRoot();
+    }
+
+    配線する(配線: I検索フォーム配線): void {
+        this._配線.配線する(配線);
     }
 
     protected createComponentRoot(): DivC {
@@ -238,7 +251,7 @@ export class 検索フォームView extends LV2HtmlComponentBase {
     private _検索実行(): void {
         const 値 = this._入力欄.getValue().trim();
         if (値.length > 0) {
-            this._イベント.on検索(値);
+            this._配線.先.on検索(値);
         }
     }
 
@@ -724,8 +737,9 @@ export class ポーズ編集Orchestrator extends LV2HtmlComponentBase implements
         const コンテナ = div({ class: styles.パーツ一覧 });
         this._パーツViewマップ = new Map();
         for (const [名前] of this._状態.パーツ群) {
-            const view = new パーツスイッチ({
-                パーツ差分名: 名前,
+            // データ（パーツ差分名）はコンストラクタ、イベントは配線ポート（第11条）
+            const view = new パーツスイッチ({ パーツ差分名: 名前 });
+            view.配線する({
                 onパーツ切り替え: (n, onOff) => this._サービス.パーツを切り替える(n, onOff),
             });
             this._パーツViewマップ.set(名前, view);

@@ -13,6 +13,7 @@ export * from './SengenBase/外部スクリプトローダー';
 import './SengenBase/style.css';
 
 // Utilities
+export * from './SengenBase/配線ポート';
 export * from './SengenBase/css長さ単位';
 export * from './SengenBase/位置関係';
 export * from './SengenBase/数と全単射な物';

@@ -71,11 +71,13 @@ new ポケモンアイコン("pikachu")
 - **継承に由来する一般的な問題は起こる**: SengenUI内部の実装変更に影響を受ける可能性がある。ただしLV1は構造が単純（HTML要素1つ）なので、実際にはリスクは低い
 - **糖衣構文（`div()`, `span()` 等）からはインスタンスを生成できない**: `new` が必要
 
-### 使いどころ
+### 使いどころ（2026-07-05 改訂: 積極適用へ）
 
-- **1つのHTML要素にドメイン固有の振る舞いを足したい**とき（アイコン、バッジ、HPバー等）
-- **再利用実績があるか、今後の再利用が確実**なとき。1箇所でしか使わないならLV2やOrchestrator内のフィールドで十分
-- **生のDivC/SpanCをフィールドに持って外から繰り返し操作しているとき。** `clearChildren → setStyleCSS → childs` のような操作パターンが見えたら、LV1拡張にしてドメインメソッドを持たせるサイン
+LV1拡張は**迷ったら使う側に倒す**。LV2の `_componentRoot` ラッパーdivや `tap()` フィールド収集を減らせるため、単一要素+ドメインメソッドの組み合わせが見えたら第一候補にする。
+
+- **1つのHTML要素にドメイン固有の振る舞いを足したい**とき（アイコン、バッジ、HPバー、一時メッセージ付き見出し等）
+- **生のDivC/SpanCをフィールドに持って外から繰り返し操作しているとき。** `clearChildren → setStyleCSS → childs` のような操作パターンや、**Orchestrator内に「特定フィールド専用のprivateメソッド」**（例: `_見出しに一時メッセージを表示する()`）が見えたら、LV1拡張にしてドメインメソッドを持たせるサイン
+- 再利用が1箇所でも、**Orchestratorから状態（タイマーID等）とロジックを追い出せる**なら抽出する価値がある
 
 ### アンチパターン: コンテナフィールド
 
@@ -138,47 +140,75 @@ function headerView({ ideaInput, onRun }: HeaderProps) {
 }
 ```
 
-### LV2 Orchestrator
+### LV2 Orchestrator — 部品のコンポジションルート
 
-- 画面やパネル単位の状態管理・イベント配線を行う「配線係」。
+- 画面やパネル単位の状態管理・イベント配線を行う「配線係」であり、**配下部品のコンポジションルート**。部品の構築と配線はここに集約され、部品同士は互いを知らない。
 - View関数やView部品を組み合わせてUIツリーを構築する。
 - ロジックが膨らんだらサービスクラスに抽出する（後述）。
 
+コンストラクタは**4フェーズ**を順に踏む（2026-07-05 改訂、第11条と対）:
+
 ```typescript
 export class MyApp extends LV2HtmlComponentBase {
-  protected _componentRoot: HtmlComponentBase;
+  protected _componentRoot: DivC;
+  private readonly _editor: EditorView;
+  private readonly _list: 項目リストView;
 
-  constructor() {
+  constructor(private readonly _service: 編集サービス) {  // ① サービス・モデルはコンストラクタ注入
       super();
-      this._componentRoot = this.createComponentRoot();
+      this._editor = new EditorView();                     // ② 部品を new（イベント引数なし・見た目だけ）
+      this._list = new 項目リストView();
+      this._componentRoot = this.createComponentRoot();    // ③ UIツリー構築
+      this._部品を配線する();                                // ④ 配線（全部品が構築済みなので相互参照も直接書ける）
   }
 
-  protected createComponentRoot(): HtmlComponentBase {
+  protected createComponentRoot(): DivC {
     return (
       div({ class: styles.root }).childs([
-          headerView({ onRun: () => this.doSomething() }),
-          contentView(this.contentArea)])
+          this._editor,
+          this._list])
     );
+  }
+
+  private _部品を配線する(): void {
+      this._editor.配線する({
+          on保存: () => this._service.保存する(),
+          on削除: () => this._list.選択中を削除する(),  // 部品間連携も構築済み参照で直接
+      });
+      this._list.配線する({
+          on選択: (id) => this._editor.表示する(id),
+      });
   }
 }
 ```
+
+配線ハンドラの実装が大きくなる場合は、配線オブジェクトを**名前付きクラス**（`implements IEditorView配線`）に昇格させてよい。必要な状態・サービスをそのクラスのコンストラクタで受ければ、Orchestrator本体からハンドラ群を分離できる。
 
 ### LV2 View部品
 
 - 自身は状態を持たず、外部からデータを受けて表示を更新する複合コンポーネント。
 - `更新する(データ)` のようなメソッドでDOM再構築なしに表示を書き換える。
-- Orchestratorがデータを流し込む。
+- Orchestratorがデータを流し込む。イベントは第11条の配線ポートで受ける。
 
 ```typescript
+export interface Iスロットカード配線 {
+    on選択(): void;
+}
+
 export class スロットカード extends LV2HtmlComponentBase {
     protected _componentRoot: DivC;
+    private readonly _配線 = new 配線ポート<Iスロットカード配線>("スロットカード");
     private readonly _名前: SpanC;
     // ... 各セルの参照
 
-    constructor(イベント: Iスロットカードイベント) {
+    constructor() {
         super();
         this._名前 = span();
-        this._componentRoot = this._UIを構築する(イベント);
+        this._componentRoot = this._UIを構築する();  // ハンドラは this._配線.先 経由
+    }
+
+    配線する(配線: Iスロットカード配線): void {
+        this._配線.配線する(配線);
     }
 
     更新する(設定: ポケモンビルド設定): void {
@@ -257,11 +287,11 @@ protected createComponentRoot(): DivC {
 
 | 状況 | パターン | 例 |
 |---|---|---|
-| 子が親に「何か起きた」と通知するだけ | **インターフェース注入** | `自動リサイズ付箋用コンテキストメニュー依存関係` |
+| 子が親に「何か起きた」と通知するだけ | **配線ポート**（第11条） | `EditorView.配線する({...})` |
 | 親子や兄弟が同じ状態を共有する | **共有サービス** | `配置物選択機能集約` |
 | 子の生成パターンが多い / 親が太りすぎる | **Factory** | `CanvasItemFactory` |
 
-シンプルな順（インターフェース注入→共有サービス→Factory）に検討し、一番単純なもので済ませる。
+シンプルな順（配線ポート→共有サービス→Factory）に検討し、一番単純なもので済ませる。
 
 ### Orchestrator肥大化の分解指針
 
@@ -543,33 +573,69 @@ protected createComponentRoot(): DivC {
 
 ---
 
-## 第11条：イベント登録
+## 第11条：イベント登録 — 構築と配線の分離（2026-07-05 改訂）
 
 1. LV1には `addTypedEventListener()` またはコンビニエンスメソッド（`.onClick()` 等）で登録する。`addEventListener()` は禁止。
-2. LV2への外部からのコールバック登録はインターフェース注入で行う。LV2にpublicなコールバック登録メソッドを生やすのはアンチパターン。
+2. **LV2の上方向イベント（部品→親）は「配線オブジェクト」を `配線する()` で1回だけ受ける。コンストラクタでは受けない。**
+   - 部品のコンストラクタは**見た目の構築だけ**を行う（イベント引数なし）
+   - 全イベントハンドラを**必須プロパティ**で列挙した `I○○配線` インターフェースを定義する
+   - `配線ポート<T>`（SengenBase）をフィールドに持ち、`配線する(配線: I○○配線)` を公開する
+   - ハンドラ内からは `this._配線.先.onXxx(...)` で参照する
+3. **禁止パターン**（いずれも配線漏れが「無言の無反応」になる silent failure）:
+   - publicなコールバック登録メソッド / setter（`set onXxx = ...`）
+   - 配線インターフェースのオプショナルプロパティ（`onXxx?: () => void`）
+   - コンストラクタの `イベント | null` 引数と、それに伴う `?.` の散在
+4. **サービス・モデル・データ提供者などの下方向依存は従来どおりコンストラクタ注入**（コーディング憲法第2条のDI）。配線ポートの対象は上方向のイベントハンドラのみ。
 
 ```typescript
-// LV2の振る舞いはインターフェース注入で解決する
-interface I操作ハンドラ {
-    on保存: () => void;
-    on削除: () => void;
+// 全イベントを必須プロパティで列挙。1個でも漏れると配線側がコンパイルエラーになる
+export interface IEditorView配線 {
+    on保存(): void;
+    on削除(): void;
 }
 
 export class EditorView extends LV2HtmlComponentBase {
-    constructor(private handler: I操作ハンドラ) {
-        super();
-        this._componentRoot = this.createComponentRoot();
-    }
+    protected _componentRoot: DivC;
+    private readonly _配線 = new 配線ポート<IEditorView配線>("EditorView");
 
-    protected createComponentRoot(): DivC {
-        return (
+    constructor() {
+        super();
+        // 見た目だけ構築する。ハンドラは配線ポート経由の遅延参照
+        this._componentRoot = (
             div({ class: styles.editor }).childs([
-                button({ text: "保存" }).onClick(() => this.handler.on保存()),
-                button({ text: "削除" }).onClick(() => this.handler.on削除())])
+                button({ text: "保存" }).onClick(() => this._配線.先.on保存()),
+                button({ text: "削除" }).onClick(() => this._配線.先.on削除())])
         );
     }
+
+    配線する(配線: IEditorView配線): void {
+        this._配線.配線する(配線);
+    }
 }
+
+// コンポジションルート（親Orchestrator）側
+const editor = new EditorView();
+editor.配線する({
+    on保存: () => this._保存サービス.保存する(),
+    on削除: () => this._モデル.削除する(),
+});
 ```
+
+### 保証の2層構造
+
+| 配線ミスの種類 | 検出方法 |
+|---|---|
+| 配線オブジェクト内のハンドラ漏れ | 必須プロパティ → **コンパイルエラー** |
+| `配線する()` 自体の呼び忘れ | イベント発火時に `配線ポート` が**例外で明示** |
+| `配線する()` の二重呼び | `配線ポート` が**例外で明示** |
+
+### なぜコンストラクタ注入をやめたか（改訂の経緯）
+
+旧規約（コンストラクタでのインターフェース注入）には3つの構造的問題があった:
+
+1. **Orchestratorのコンストラクタが配線儀式で肥大化する。** 部品が7個あればコンストラクタが約70行のイベント列挙になり、`strictPropertyInitialization` を満たすため「`createComponentRoot()` の外で事前 `new`」する中途半端な形が常態化した
+2. **相互参照する部品で初期化順の歪みが出る。** 部品Aのコンストラクタ引数に部品Bのメソッド呼び出しを書くとき、Bが未初期化のため `() => this._B.やる()` という this 経由の遅延評価で誤魔化すしかなかった。構築と配線を分離すれば、配線フェーズでは全部品が構築済みなので直接参照できる
+3. **「後から配線したい」ものが nullable setter に逃げる。** コンストラクタで受けられない配線が `set onXxx` + `null` チェックとして散在し、未配線が実行時の無言の無反応になっていた
 
 ---
 
