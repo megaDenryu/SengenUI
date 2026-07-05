@@ -106,10 +106,24 @@ export class DocumentBodyC {
      * @returns this（メソッドチェーン用）
      */
     public addEventListener<K extends keyof HTMLElementEventMap>(
-        eventName: K, 
+        eventName: K,
         listener: (event: HTMLElementEventMap[K]) => void
     ): this {
         this._dom.element.addEventListener(eventName, listener);
+        return this;
+    }
+
+    /**
+     * イベントリスナーを解除
+     * @param eventName イベント名
+     * @param listener addEventListener と同じ関数参照を渡す
+     * @returns this（メソッドチェーン用）
+     */
+    public removeEventListener<K extends keyof HTMLElementEventMap>(
+        eventName: K,
+        listener: (event: HTMLElementEventMap[K]) => void
+    ): this {
+        this._dom.element.removeEventListener(eventName, listener);
         return this;
     }
 
