@@ -143,46 +143,61 @@ function headerView({ ideaInput, onRun }: HeaderProps) {
 ### LV2 Orchestrator — 部品のコンポジションルート
 
 - 画面やパネル単位の状態管理・イベント配線を行う「配線係」であり、**配下部品のコンポジションルート**。部品の構築と配線はここに集約され、部品同士は互いを知らない。
-- View関数やView部品を組み合わせてUIツリーを構築する。
+- 複数の部品を集約するLV2は **`LV2部品集約Base<T部品>` を継承**し、`_ルートを構築する(部品: T部品)` の実装を型で強要される。
 - ロジックが膨らんだらサービスクラスに抽出する（後述）。
 
-コンストラクタは**4フェーズ**を順に踏む（2026-07-05 改訂、第11条と対）:
+コンストラクタは**3フェーズ**を順に踏む（2026-07-06 改訂、第11条と対）:
 
 ```typescript
-export class MyApp extends LV2HtmlComponentBase {
-  protected _componentRoot: DivC;
-  private readonly _editor: EditorView;
-  private readonly _list: 項目リストView;
+// 集約する部品の一覧と構築ロジックを凝集した部品DTOクラス。
+// 「どの部品から構築されるか」の型契約であり、構築はstaticファクトリに閉じる
+export class MyApp部品 {
+    private constructor(
+        readonly editor: EditorView,
+        readonly list: 項目リストView,
+    ) {}
 
-  constructor(private readonly _service: 編集サービス) {  // ① サービス・モデルはコンストラクタ注入
+    static 作る(): MyApp部品 {
+        return new MyApp部品(
+            new EditorView(),      // イベント引数なし・見た目だけ（第11条）
+            new 項目リストView(),
+        );
+    }
+}
+
+export class MyApp extends LV2部品集約Base<MyApp部品> {
+  protected _componentRoot: DivC;
+  // Why: 個別フィールドを部品ごとに持たず、部品DTOを1本で保持する。
+  // 後からデータを流し込む反映処理は this._部品.list.更新する(...) の形で触る
+  private readonly _部品: MyApp部品;
+
+  constructor(private readonly _service: 編集サービス) {   // ① サービス・モデルはコンストラクタ注入
       super();
-      this._editor = new EditorView();                     // ② 部品を new（イベント引数なし・見た目だけ）
-      this._list = new 項目リストView();
-      this._componentRoot = this.createComponentRoot();    // ③ UIツリー構築
-      this._部品を配線する();                                // ④ 配線（全部品が構築済みなので相互参照も直接書ける）
+      this._部品 = MyApp部品.作る();                        // ② 部品ファクトリで一括構築
+      this._componentRoot = this._ルートを構築する(this._部品);  // ③ ツリー構築 = 配置しながら配線
   }
 
-  protected createComponentRoot(): DivC {
+  // Why: 引数の部品だけからツリーを作る（thisの部品フィールドへの暗黙依存を持たない）。
+  // この時点で全部品が構築済みなので、配置と同時に 配線する() を呼べる。
+  // 配線ハンドラのクロージャがthisのサービス・privateメソッドを参照するのは正当
+  protected _ルートを構築する(部品: MyApp部品): DivC {
     return (
       div({ class: styles.root }).childs([
-          this._editor,
-          this._list])
+          部品.editor.配線する({
+              on保存: () => this._service.保存する(),
+              on削除: () => 部品.list.選択中を削除する(),  // 部品間連携も構築済み参照で直接
+          }),
+          部品.list.配線する({
+              on選択: (id) => 部品.editor.表示する(id),
+          })])
     );
-  }
-
-  private _部品を配線する(): void {
-      this._editor.配線する({
-          on保存: () => this._service.保存する(),
-          on削除: () => this._list.選択中を削除する(),  // 部品間連携も構築済み参照で直接
-      });
-      this._list.配線する({
-          on選択: (id) => this._editor.表示する(id),
-      });
   }
 }
 ```
 
-配線ハンドラの実装が大きくなる場合は、配線オブジェクトを**名前付きクラス**（`implements IEditorView配線`）に昇格させてよい。必要な状態・サービスをそのクラスのコンストラクタで受ければ、Orchestrator本体からハンドラ群を分離できる。
+**なぜ「配置しながら配線」か**: ルート構築はコンストラクタの最終段階であり、作るべきインスタンスはすべて構築済み。配線だけ別メソッドに分けても時系列的に連続しているだけで意味の切れ目がない。ツリー内で配線すれば「この部品はここに配置され、こう振る舞う」が1箇所で読め、宣言的ツリーの表現力が最大になる（`配線する()` が `this` を返すのはこのため）。
+
+配線ハンドラの実装が大きくなる場合は、配線オブジェクトを**名前付きクラス**（`implements IEditorView配線`）に昇格させてよい。必要な状態・サービスをそのクラスのコンストラクタで受ければ、Orchestrator本体からハンドラ群を分離でき、ツリー内の配線は `部品.editor.配線する(this._編集ハンドラ)` の1行になる。
 
 ### LV2 View部品
 
@@ -195,7 +210,7 @@ export interface Iスロットカード配線 {
     on選択(): void;
 }
 
-export class スロットカード extends LV2HtmlComponentBase {
+export class スロットカード extends LV2HtmlComponentBase implements I配線可能<Iスロットカード配線> {
     protected _componentRoot: DivC;
     private readonly _配線 = new 配線ポート<Iスロットカード配線>("スロットカード");
     private readonly _名前: SpanC;
@@ -207,8 +222,9 @@ export class スロットカード extends LV2HtmlComponentBase {
         this._componentRoot = this._UIを構築する();  // ハンドラは this._配線.先 経由
     }
 
-    配線する(配線: Iスロットカード配線): void {
+    配線する(配線: Iスロットカード配線): this {
         this._配線.配線する(配線);
+        return this;
     }
 
     更新する(設定: ポケモンビルド設定): void {
@@ -579,7 +595,8 @@ protected createComponentRoot(): DivC {
 2. **LV2の上方向イベント（部品→親）は「配線オブジェクト」を `配線する()` で1回だけ受ける。コンストラクタでは受けない。**
    - 部品のコンストラクタは**見た目の構築だけ**を行う（イベント引数なし）
    - 全イベントハンドラを**必須プロパティ**で列挙した `I○○配線` インターフェースを定義する
-   - `配線ポート<T>`（SengenBase）をフィールドに持ち、`配線する(配線: I○○配線)` を公開する
+   - `配線ポート<T>`（SengenBase）をフィールドに持ち、`implements I配線可能<I○○配線>` を表明して `配線する(配線: I○○配線): this` を公開する
+   - **`配線する()` は `this` を返す**。親のルート構築ツリーの中で「配置しながら配線する」チェーンを可能にするため（第4条参照）
    - ハンドラ内からは `this._配線.先.onXxx(...)` で参照する
 3. **禁止パターン**（いずれも配線漏れが「無言の無反応」になる silent failure）:
    - publicなコールバック登録メソッド / setter（`set onXxx = ...`）
@@ -594,7 +611,7 @@ export interface IEditorView配線 {
     on削除(): void;
 }
 
-export class EditorView extends LV2HtmlComponentBase {
+export class EditorView extends LV2HtmlComponentBase implements I配線可能<IEditorView配線> {
     protected _componentRoot: DivC;
     private readonly _配線 = new 配線ポート<IEditorView配線>("EditorView");
 
@@ -608,17 +625,18 @@ export class EditorView extends LV2HtmlComponentBase {
         );
     }
 
-    配線する(配線: IEditorView配線): void {
+    配線する(配線: IEditorView配線): this {
         this._配線.配線する(配線);
+        return this;
     }
 }
 
-// コンポジションルート（親Orchestrator）側
-const editor = new EditorView();
-editor.配線する({
-    on保存: () => this._保存サービス.保存する(),
-    on削除: () => this._モデル.削除する(),
-});
+// コンポジションルート（親Orchestrator）側: ルート構築ツリー内で配置しながら配線する
+div({ class: styles.root }).childs([
+    部品.editor.配線する({
+        on保存: () => this._保存サービス.保存する(),
+        on削除: () => this._モデル.削除する(),
+    })])
 ```
 
 ### 保証の2層構造

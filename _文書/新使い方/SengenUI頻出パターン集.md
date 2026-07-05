@@ -32,8 +32,9 @@ export class タスクリストView extends LV2HtmlComponentBase {
         this._componentRoot = this.createComponentRoot();
     }
 
-    配線する(配線: Iタスクリスト配線): void {
+    配線する(配線: Iタスクリスト配線): this {
         this._配線.配線する(配線);
+        return this;
     }
 
     protected createComponentRoot(): DivC {
@@ -45,8 +46,8 @@ export class タスクリストView extends LV2HtmlComponentBase {
     }
 
     追加する(タスク: タスク): void {
-        const 行 = new タスク行View(タスク);
-        行.配線する({
+        // 配線する() は this を返すので、生成・配線・配置が1つの式で書ける
+        const 行 = new タスク行View(タスク).配線する({
             on削除: () => this._配線.先.on削除(タスク.id),
             on完了: () => this._配線.先.on完了(タスク.id),
         });
@@ -234,8 +235,9 @@ export class 検索フォームView extends LV2HtmlComponentBase {
         this._componentRoot = this.createComponentRoot();
     }
 
-    配線する(配線: I検索フォーム配線): void {
+    配線する(配線: I検索フォーム配線): this {
         this._配線.配線する(配線);
+        return this;
     }
 
     protected createComponentRoot(): DivC {
@@ -738,8 +740,7 @@ export class ポーズ編集Orchestrator extends LV2HtmlComponentBase implements
         this._パーツViewマップ = new Map();
         for (const [名前] of this._状態.パーツ群) {
             // データ（パーツ差分名）はコンストラクタ、イベントは配線ポート（第11条）
-            const view = new パーツスイッチ({ パーツ差分名: 名前 });
-            view.配線する({
+            const view = new パーツスイッチ({ パーツ差分名: 名前 }).配線する({
                 onパーツ切り替え: (n, onOff) => this._サービス.パーツを切り替える(n, onOff),
             });
             this._パーツViewマップ.set(名前, view);

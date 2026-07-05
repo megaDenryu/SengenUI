@@ -21,6 +21,7 @@ export * from './SengenBase/vector';
 
 // Component bases
 export * from './SengenBase/LV2HtmlComponentBase';
+export * from './SengenBase/LV2部品集約Base';
 export * from './SengenBase/DragableComponent';
 
 // Behaviors
