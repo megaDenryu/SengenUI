@@ -117,6 +117,23 @@ export abstract class LV1HtmlComponentBase extends HtmlComponentBase implements 
         return this;
     }
 
+    public onPointerCancel(callback: TypedEventListener<'pointercancel'>): this {
+        this.addTypedEventListener('pointercancel', callback);
+        return this;
+    }
+
+    public ポインタを捕捉する(pointerId: number): this {
+        this.dom.element.setPointerCapture(pointerId);
+        return this;
+    }
+
+    public ポインタ捕捉を解除する(pointerId: number): this {
+        if (this.dom.element.hasPointerCapture(pointerId)) {
+            this.dom.element.releasePointerCapture(pointerId);
+        }
+        return this;
+    }
+
     /**
      * ホイールイベントリスナーを追加する。
      *

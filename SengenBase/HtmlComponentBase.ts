@@ -254,6 +254,20 @@ export abstract class HtmlComponentBase implements HaveHtmlElementProxy, HTMLCom
         return this.dom.element.getBoundingClientRect();
     }
 
+    public 内容サイズを取得する(): {
+        clientWidth: number;
+        clientHeight: number;
+        scrollWidth: number;
+        scrollHeight: number;
+    } {
+        return {
+            clientWidth: this.dom.element.clientWidth,
+            clientHeight: this.dom.element.clientHeight,
+            scrollWidth: this.dom.element.scrollWidth,
+            scrollHeight: this.dom.element.scrollHeight,
+        };
+    }
+
     /**
      * ビューポート（ブラウザの表示領域）を原点とした現在位置を取得します。
      * - ビューポートとは、スクロールを考慮した“いま画面に映っている領域”のことです。
