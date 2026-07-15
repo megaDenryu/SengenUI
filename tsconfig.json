@@ -9,17 +9,17 @@
     "declarationMap": true,
     "outDir": "./dist",
     "rootDir": ".",
-    "baseUrl": ".",
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node"
+    "moduleResolution": "Bundler"
   },
   "include": [
     "**/*.ts"
   ],
   "exclude": [
+    "**/*.test.ts",
     "_文書/**/*",
     "node_modules",
     "dist"
