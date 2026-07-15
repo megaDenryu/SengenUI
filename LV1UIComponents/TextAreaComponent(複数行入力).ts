@@ -147,6 +147,27 @@ export class TextAreaC extends LV1HtmlComponentBase {
         return this;
     }
 
+    /**
+     * 現在のレンダリング後の高さ(px)を取得する。autoFitToContent() 適用後に
+     * 実際の高さを外部(親コンポーネントのレイアウト反映等)へ伝えるために使う。
+     */
+    public 高さPxを取得する(): number {
+        return (this.dom.element as HTMLTextAreaElement).offsetHeight;
+    }
+
+    /**
+     * 値と選択範囲を書き換えて input イベントを発火する。プログラム的な
+     * テキスト編集(Tab補完・自動閉じ括弧の挿入/削除等)を、通常のキー入力と
+     * 同じ反応経路(input リスナー)へ合流させるために使う。
+     */
+    public 値と選択範囲を書き換えて通知する(value: string, selectionStart: number, selectionEnd: number = selectionStart): this {
+        const el = this.dom.element as HTMLTextAreaElement;
+        el.value = value;
+        el.setSelectionRange(selectionStart, selectionEnd);
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        return this;
+    }
+
     // === TextArea固有のイベントメソッド ===
 
     /**
