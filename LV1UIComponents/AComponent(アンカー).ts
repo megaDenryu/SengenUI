@@ -6,6 +6,7 @@ interface AOptions {
     text?: string;
     href?: string;
     target?: string;
+    rel?: string;
     class?: string[] | string;
     id?: string;
 }
@@ -22,6 +23,9 @@ export class AC extends LV1HtmlComponentBase {
         }
         if (options?.target) {
             this.setTarget(options.target);
+        }
+        if (options?.rel) {
+            this.setRel(options.rel);
         }
         if (options?.class) {
             this.dom.addCSSClass(options.class);
@@ -53,6 +57,11 @@ export class AC extends LV1HtmlComponentBase {
 
     public setTarget(target: string): this {
         (this.dom.element as HTMLAnchorElement).target = target;
+        return this;
+    }
+
+    public setRel(rel: string): this {
+        (this.dom.element as HTMLAnchorElement).rel = rel;
         return this;
     }
 
