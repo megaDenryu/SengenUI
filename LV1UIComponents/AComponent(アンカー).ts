@@ -65,6 +65,14 @@ export class AC extends LV1HtmlComponentBase {
         return this;
     }
 
+    /**
+     * リンクをコードから辿ります。
+     * download属性を付けたアンカーを辿らせてファイルを保存させる用途で使います。
+     */
+    public click(): void {
+        (this.dom.element as HTMLAnchorElement).click();
+    }
+
     public addClass(className: string | string[]): this {
         this.dom.addCSSClass(className);
         return this;

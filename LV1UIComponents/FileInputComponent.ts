@@ -72,6 +72,15 @@ export class FileInputC extends LV1HtmlComponentBase {
     }
 
     /**
+     * 選択されたファイルを空に戻す
+     * 同じファイルを選び直したときにも change を起こしたい場合に使う
+     */
+    public clearFiles(): this {
+        (this.dom.element as HTMLInputElement).value = '';
+        return this;
+    }
+
+    /**
      * 無効/有効状態を設定
      */
     public setDisabled(disabled: boolean): this {
